@@ -43,7 +43,7 @@ function update() {
     const xAxis = this.createXAxis(root, chart);
     const yAxis = this.createYAxis(root, chart);
     const yAxisRight = this.createYAxisRight(root, chart, yAxis);
-    const windAxis = this.createWindAxis(root, chart, yAxisRight);
+    const windAxis = this.createWindAxis(root, chart);
 
     const tempSeries = this.createTemperatureSeries(root, chart, xAxis, yAxis);
     const windSeries = this.createWindSeries(root, chart, xAxis, windAxis);
@@ -55,8 +55,7 @@ function update() {
     );
     const sunSeries = this.createSunSeries(root, chart, xAxis, yAxisRight);
 
-    const processedData = this.processData(weatherData);
-    const chartData = this.prepareChartData(processedData);
+    const chartData = this.prepareChartData(weatherData);
 
     this.setSeriesData(
       [tempSeries, precipSeries, windSeries, sunSeries],
@@ -87,7 +86,7 @@ function update() {
       windSeries,
       sunSeries,
       precipSeries,
-      processedData,
+      weatherData,
     );
 
     this.chart = root;
@@ -175,19 +174,18 @@ function update() {
     return newAxis;
   }
 
-  createWindAxis(root, chart, yAxis) {
+  createWindAxis(root, chart) {
     const windAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
         min: 0,
         extraMax: 0.6,
-        extraMin: 0.00001,
+        extraMin: 0.1,
         visible: false,
         strictMinMax: false,
         autoZoom: false,
         renderer: am5xy.AxisRendererY.new(root, {
           visible: false,
         }),
-        syncWithAxis: yAxis,
       }),
     );
     const yRenderer = windAxis.get("renderer");
@@ -291,10 +289,6 @@ function update() {
     return windSeries;
   }
 
-  processData(weatherData) {
-    return weatherData;
-  }
-
   gradientColor(value, min, max, colorLow, colorHigh) {
     const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
     const toRgb = (c) => parseInt(c.slice(1), 16);
@@ -321,8 +315,10 @@ function update() {
       sunHoursBar: 0.5,
       precipitationBase: 0,
       precipitationBar: 1,
-      windBase: 0,
-      windSpeed: item.windSpeed,
+      windBase: this.settings.getShowWindGusts() ? item.windSpeed : 0,
+      windSpeed: this.settings.getShowWindGusts()
+        ? item.windGusts
+        : item.windSpeed,
       sunFillSettings: {
         fill: this.gradientColor(item.sunHours, 0, 50, "#888888", "#ffff22"),
       },
@@ -464,11 +460,16 @@ function update() {
             }
 
             // Add wind bullets
+            let windField = "windSpeed";
+            if (this.settings.getShowWindGusts()) {
+              windField = "windGusts";
+            }
+
             if (
-              dataPoint.extrema.isMinima?.includes("windSpeed") ||
-              dataPoint.extrema.isMaxima?.includes("windSpeed")
+              dataPoint.extrema.isMinima?.includes(windField) ||
+              dataPoint.extrema.isMaxima?.includes(windField)
             ) {
-              const roundedValue = Math.round(dataPoint.windSpeed);
+              const roundedValue = Math.round(dataPoint[windField]);
               const formattedValue =
                 roundedValue + " " + this.settings.getWindSpeedUnit();
               addBullet(windSeries, index, formattedValue, "wind");

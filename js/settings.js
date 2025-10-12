@@ -6,6 +6,7 @@ class Settings {
       dmiApiToken: "",
       tempUnit: "celsius",
       windUnit: "ms",
+      showWindGusts: false,
       locationCacheMinutes: 15,
       owmForecastType: "3-hourly",
     };
@@ -26,6 +27,7 @@ class Settings {
     this.settings.dmiApiToken = dmiApiToken.value;
     this.settings.tempUnit = tempUnit.value;
     this.settings.windUnit = windUnit.value;
+    this.settings.showWindGusts = showWindGusts.value;
     this.settings.locationCacheMinutes =
       parseInt(locationCacheMinutes.value) || 30;
     this.settings.owmForecastType = owmForecastType.value;
@@ -42,6 +44,10 @@ class Settings {
     throw new Error(`Unknown provider: ${this.settings.weatherProvider}`);
   }
 
+  getShowWindGusts() {
+    return this.settings.showWindGusts == "true";
+  }
+
   initializeUI() {
     const weatherProvider = document.getElementById("weatherProvider");
     const owmApiToken = document.getElementById("owmApiToken");
@@ -49,6 +55,7 @@ class Settings {
     const dmiApiToken = document.getElementById("dmiApiToken");
     const tempUnit = document.getElementById("tempUnit");
     const windUnit = document.getElementById("windUnit");
+    const showWindGusts = document.getElementById("showWindGusts");
     const locationCacheMinutes = document.getElementById(
       "locationCacheMinutes",
     );
@@ -58,6 +65,7 @@ class Settings {
     dmiApiToken.value = this.settings.dmiApiToken;
     tempUnit.value = this.settings.tempUnit;
     windUnit.value = this.settings.windUnit;
+    showWindGusts.value = this.settings.showWindGusts;
     locationCacheMinutes.value = this.settings.locationCacheMinutes;
     owmForecastType.value = this.settings.owmForecastType;
 

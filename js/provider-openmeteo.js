@@ -7,7 +7,7 @@ class OpenMeteoProvider extends Provider {
 
     let endpoint;
     let configuration =
-      "temperature_2m,precipitation,wind_speed_10m,cloud_cover";
+      "temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,cloud_cover";
 
     endpoint = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=${configuration}&models=dmi_seamless&timezone=auto`;
 
@@ -47,6 +47,7 @@ class OpenMeteoProvider extends Provider {
         const temp = data.hourly.temperature_2m[index];
         const precip = data.hourly.precipitation?.[index] || 0;
         const windSpeed = data.hourly.wind_speed_10m?.[index] / 3.6 || 0;
+        const windGusts = data.hourly.wind_gusts_10m?.[index] / 3.6 || 0;
         const cloudCover = data.hourly.cloud_cover?.[index] || 0;
 
         return {
@@ -57,6 +58,7 @@ class OpenMeteoProvider extends Provider {
           precipitation: precip,
           precipitationProb: 0,
           windSpeed: this.settings.convertWindSpeed(windSpeed),
+          windGusts: this.settings.convertWindSpeed(windGusts),
           clouds: cloudCover,
           sunHours: Math.max(0, 100 - cloudCover),
         };
