@@ -65,7 +65,6 @@ class DmiProvider extends Provider {
     }
 
     processedData.alerts = [];
-    this.smooth(processedData);
 
     return processedData;
   }

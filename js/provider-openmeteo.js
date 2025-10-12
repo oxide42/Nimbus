@@ -66,8 +66,6 @@ class OpenMeteoProvider extends Provider {
     // Delete null values
     processedData = processedData.filter((item) => item !== null);
 
-    this.smooth(processedData);
-
     return {
       data: processedData,
       alerts: [],

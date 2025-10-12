@@ -97,8 +97,6 @@ class OpenWeatherMapProvider extends Provider {
         }))
       : [];
 
-    this.smooth(processedData);
-
     return {
       data: processedData,
       alerts: alerts,
