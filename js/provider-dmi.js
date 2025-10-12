@@ -38,7 +38,7 @@ class DmiProvider extends Provider {
         this.settings.settings.locationCacheMinutes,
       );
 
-      return this.processWeatherData(data, forecastType);
+      return data;
     } catch (error) {
       throw new Error("DMI API not available", error.message);
     }

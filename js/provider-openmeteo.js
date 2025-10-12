@@ -31,7 +31,7 @@ class OpenMeteoProvider extends Provider {
         this.settings.settings.locationCacheMinutes,
       );
 
-      return this.processWeatherData(data, forecastType);
+      return data;
     } catch (error) {
       throw new Error("Open-Meteo API not available", error.message);
     }

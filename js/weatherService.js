@@ -56,17 +56,19 @@ class WeatherService {
     try {
       const position = await this.locationService.getCurrentPosition();
       const { latitude, longitude } = position.coords;
-
       const provider = this.getProvider();
+
       const result = await provider.fetchWeatherData(
         latitude,
         longitude,
         forecastType,
       );
 
+      let processedData = provider.processWeatherData(result);
+
       // Postprocess sun hours to correct for nighttime
-      const correctedData = this.correctSunHours(
-        result.data,
+      const correctedData = this.#correctSunHours(
+        processedData,
         latitude,
         longitude,
       );
@@ -75,7 +77,7 @@ class WeatherService {
       this.#smooth(correctedData);
 
       // Mark extrema points for temperature and wind
-      const processedData = this.extremaService.markExtrema(correctedData, [
+      processedData = this.extremaService.markExtrema(correctedData, [
         "temperature",
         "windSpeed",
         "precipitation",
@@ -86,7 +88,9 @@ class WeatherService {
         alerts: result.alerts,
       };
     } catch (error) {
-      throw new Error(`Failed to fetch weather data: ${error.message}`);
+      const errorText = `Failed to fetch weather data: ${error.message}`;
+      console.error(error.stack);
+      throw new Error(errorText);
     }
   }
 
@@ -97,8 +101,8 @@ class WeatherService {
    * @param {number} longitude - Longitude in degrees
    * @returns {Array} - Weather data with corrected sun hours
    */
-  correctSunHours(weatherData, latitude, longitude) {
-    return weatherData.map((dataPoint, index) => {
+  #correctSunHours(weatherData, latitude, longitude) {
+    return weatherData.data.map((dataPoint, index) => {
       const currentTime = dataPoint.time;
 
       // Calculate sun times for this data point's date

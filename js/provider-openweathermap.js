@@ -40,7 +40,7 @@ class OpenWeatherMapProvider extends Provider {
       this.settings.settings.locationCacheMinutes,
     );
 
-    return this.processWeatherData(data, forecastType);
+    return data;
   }
 
   processWeatherData(data, forecastType) {
