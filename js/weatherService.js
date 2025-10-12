@@ -26,7 +26,32 @@ class WeatherService {
     }
     return new ProviderClass(this.settings);
   }
-  
+
+  #ema(data, property, ema_length = 3) {
+    const alpha = 2 / (ema_length + 1); // 0.5
+    const emaValues = [];
+
+    let ema = data[0][property]; // seed with first value
+    emaValues.push(ema);
+
+    for (let i = 1; i < data.length; i++) {
+      ema = alpha * data[i][property] + (1 - alpha) * ema;
+      emaValues.push(ema);
+    }
+    return emaValues;
+  }
+
+  #smooth(data) {
+    const temp_ema = this.#ema(data, "temperature", 3);
+    const wind_ema = this.#ema(data, "windSpeed", 4);
+
+    // Apply ema on data structure
+    data.forEach((item, index) => {
+      item.temperature = temp_ema[index];
+      item.windSpeed = wind_ema[index];
+    });
+  }
+
   async fetchWeatherData(forecastType) {
     try {
       const position = await this.locationService.getCurrentPosition();
@@ -46,6 +71,9 @@ class WeatherService {
         longitude,
       );
 
+      // Smooth data
+      this.#smooth(correctedData);
+
       // Mark extrema points for temperature and wind
       const processedData = this.extremaService.markExtrema(correctedData, [
         "temperature",
@@ -53,18 +81,8 @@ class WeatherService {
         "precipitation",
       ]);
 
-      const json = processedData.map((dataPoint) => {
-        return {
-          // time in yymmdd hh
-          time: dataPoint.time,
-          windSpeed: dataPoint.windSpeed,
-          extrema: dataPoint.extrema,
-        };
-      });
-
       return {
         data: processedData,
-        debug: json,
         alerts: result.alerts,
       };
     } catch (error) {
