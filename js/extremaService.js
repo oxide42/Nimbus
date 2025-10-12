@@ -2,7 +2,7 @@ class ExtremaService {
   constructor(settings) {
     this.settings = settings;
     // Base thresholds - will be adjusted per forecast type
-    this.indexDistanceThreshold = 1;
+    this.indexDistanceThreshold = 4;
     this.valueThresholdPct = 0.2;
     this.valueThresholdValue = 1;
   }
