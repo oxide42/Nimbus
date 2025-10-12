@@ -44,7 +44,7 @@ body {
     gap: 10px;
 }
 
-.settings-btn {
+.action-buttons {
     background-color: transparent;
     border: 2px solid white;
     color: white;
@@ -60,13 +60,13 @@ body {
     justify-content: center;
 }
 
-.settings-btn:hover {
+.action-buttons:hover {
     background-color: white;
     color: #2c3e50;
     transform: rotate(45deg);
 }
 
-.settings-btn.active {
+.action-buttons.active {
     background-color: white;
     color: #2c3e50;
 }

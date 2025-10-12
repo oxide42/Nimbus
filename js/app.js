@@ -12,6 +12,7 @@ class WeatherApp {
 
   initializeUI() {
     const settingsBtn = document.getElementById("settingsBtn");
+    const refreshBtn = document.getElementById("refreshBtn");
     const mainPage = document.getElementById("mainPage");
     const settingsPage = document.getElementById("settingsPage");
 
@@ -24,6 +25,10 @@ class WeatherApp {
       } else {
         this.showPage("settings");
       }
+    });
+
+    refreshBtn.addEventListener("click", () => {
+      location.reload();
     });
   }
 
