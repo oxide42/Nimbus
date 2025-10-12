@@ -19,8 +19,8 @@ class WeatherApp {
       // Toggle between main and settings
       if (settingsPage.classList.contains("active")) {
         this.settings.saveSettings();
-        this.loadWeatherData();
         this.showPage("main");
+        location.reload();
       } else {
         this.showPage("settings");
       }
