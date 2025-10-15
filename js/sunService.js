@@ -192,4 +192,31 @@ class SunService {
     const [hours, minutes] = timeString.split(":").map(Number);
     return hours + minutes / 60;
   }
+
+  getSolarInsolation(zenith, clouds_pct) {
+    // Max solindstråling under optimale forhold
+    // solarconstant = 1025;  // W/m2
+    // Den øvre grænse for hvor meget solen kan opvarme bar hud er 400 W/m2
+    const solarconstant = 400; // W/m2
+
+    // Tag hoejde for den ekstra atmosfaere som solen skal passere;
+    const solarzentithconstant =
+      solarconstant *
+      (solarconstant / (solarconstant / Math.cos((Math.PI * zenith) / 180)));
+
+    // Tag hoejde for den ekstra flade solen skal opvarme;
+    // az = 1 / Math.cos(Math.PI * zenith / 180.);
+    // Nu regnes der altid paa den optimale flade;
+    const az = 1;
+
+    let solarinsolation = Math.round(
+      solarzentithconstant * (1 / az) * ((100 - clouds_pct) / 100),
+    );
+
+    if (solarinsolation < 0 || zenith >= 89) {
+      solarinsolation = 0;
+    }
+
+    return solarinsolation;
+  }
 }
