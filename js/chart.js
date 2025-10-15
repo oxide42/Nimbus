@@ -140,12 +140,11 @@ function update() {
   createYAxis(root, chart) {
     return chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
-        min: 0,
         extraMax: 0.05,
-        extraMin: 0.35,
+        extraMin: 0.45,
         visible: false,
-        strictMinMax: false,
         autoZoom: false,
+        strictMinMax: true,
         renderer: am5xy.AxisRendererY.new(root, {
           strokeDasharray: [1, 3],
         }),
@@ -178,10 +177,10 @@ function update() {
     const windAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
         min: 0,
-        extraMax: 0.6,
-        extraMin: 0.1,
+        extraMax: 0.4,
+        extraMin: 0.2,
         visible: false,
-        strictMinMax: false,
+        strictMinMax: true,
         autoZoom: false,
         renderer: am5xy.AxisRendererY.new(root, {
           visible: false,
