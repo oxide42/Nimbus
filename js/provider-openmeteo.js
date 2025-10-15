@@ -5,19 +5,30 @@ class OpenMeteoProvider extends Provider {
       return this.processWeatherData(cachedResponce, forecastType);
     }
 
-    let endpoint;
-    let configuration =
-      "temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,cloud_cover";
-
-    endpoint = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=${configuration}&models=dmi_seamless&timezone=auto`;
-
     try {
       const headers = {
         Accept: "application/json",
-        "User-Agent": "Nimbus weather/1.0",
+        "User-Agent": "Nimbus Weather/1.0",
       };
 
-      const response = await fetch(endpoint, { headers });
+      const params = new URLSearchParams({
+        latitude: latitude,
+        longitude: longitude,
+        hourly: [
+          "temperature_2m",
+          "precipitation",
+          "wind_speed_10m",
+          "wind_gusts_10m",
+          "relative_humidity_2m",
+          "cloud_cover",
+        ],
+      });
+
+      const url = `https://api.open-meteo.com/v1/forecast?${params}`;
+
+      const response = await fetch(url, {
+        headers: headers,
+      });
 
       if (!response.ok) {
         throw new Error(`Open-Meteo API error: ${response.statusText}`);
@@ -49,6 +60,7 @@ class OpenMeteoProvider extends Provider {
         const windSpeed = data.hourly.wind_speed_10m?.[index] / 3.6 || 0;
         const windGusts = data.hourly.wind_gusts_10m?.[index] / 3.6 || 0;
         const cloudCover = data.hourly.cloud_cover?.[index] || 0;
+        const humidity = data.hourly.relative_humidity_2m?.[index] || 0;
 
         return {
           time: new Date(time),
@@ -61,6 +73,7 @@ class OpenMeteoProvider extends Provider {
           windGusts: this.settings.convertWindSpeed(windGusts),
           clouds: cloudCover,
           sunHours: Math.max(0, 100 - cloudCover),
+          humidity: humidity,
         };
       });
     }
