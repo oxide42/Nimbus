@@ -473,20 +473,23 @@ function update() {
                 roundedValue + " " + this.settings.getWindSpeedUnit();
               addBullet(windSeries, index, formattedValue, "wind");
             }
+          }
+        });
 
-            // Add precipitation bullets
-            if (dataPoint.extrema.isMaxima?.includes("precipitation")) {
-              const roundedValue = Math.round(dataPoint.precipitation);
-              const formattedValue = roundedValue;
-              addBullet(
-                precipSeries,
-                index,
-                formattedValue,
-                "precipitation",
-                am5.p50,
-                am5.p0,
-              );
-            }
+        // Add precipitation bullets for grouped totals
+        processedData.forEach((dataPoint, index) => {
+          if (dataPoint.precipitationGroupTotal) {
+            const roundedValue = Math.round(dataPoint.precipitationGroupTotal);
+            const formattedValue =
+              roundedValue === 0 ? "<1 mm" : roundedValue + " mm";
+            addBullet(
+              precipSeries,
+              index,
+              formattedValue,
+              "precipitation",
+              am5.p50,
+              am5.p0,
+            );
           }
         });
       }

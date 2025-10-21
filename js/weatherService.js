@@ -54,6 +54,55 @@ class WeatherService {
     });
   }
 
+  /**
+   * Group consecutive precipitation periods and mark the middle point with total precipitation
+   * @param {Array} data - Weather data with precipitation values
+   * @returns {Array} - Weather data with precipitation groups marked
+   */
+  #groupPrecipitation(data) {
+    let inGroup = false;
+    let groupStart = -1;
+    let groupTotal = 0;
+
+    for (let i = 0; i < data.length; i++) {
+      const hasPrecip = data[i].precipitation > 0;
+
+      if (hasPrecip && !inGroup) {
+        // Start new precipitation group
+        inGroup = true;
+        groupStart = i;
+        groupTotal = data[i].precipitation;
+      } else if (hasPrecip && inGroup) {
+        // Continue current group
+        groupTotal += data[i].precipitation;
+      } else if (!hasPrecip && inGroup) {
+        // End current group
+        const groupEnd = i - 1;
+        const groupMiddle = Math.floor((groupStart + groupEnd) / 2);
+
+        // Mark the middle point with the total precipitation for the group
+        data[groupMiddle].precipitationGroupTotal = groupTotal;
+        data[groupMiddle].precipitationGroupStart = groupStart;
+        data[groupMiddle].precipitationGroupEnd = groupEnd;
+
+        inGroup = false;
+        groupTotal = 0;
+      }
+    }
+
+    // Handle case where precipitation group extends to end of data
+    if (inGroup) {
+      const groupEnd = data.length - 1;
+      const groupMiddle = Math.floor((groupStart + groupEnd) / 2);
+
+      data[groupMiddle].precipitationGroupTotal = groupTotal;
+      data[groupMiddle].precipitationGroupStart = groupStart;
+      data[groupMiddle].precipitationGroupEnd = groupEnd;
+    }
+
+    return data;
+  }
+
   async fetchWeatherData(forecastType) {
     try {
       const position = await this.locationService.getCurrentPosition();
@@ -83,8 +132,10 @@ class WeatherService {
         "temperature",
         "windSpeed",
         "windGusts",
-        "precipitation",
       ]);
+
+      // Group precipitation periods
+      processedData = this.#groupPrecipitation(processedData);
 
       return {
         data: processedData,
