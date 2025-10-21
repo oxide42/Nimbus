@@ -481,15 +481,17 @@ function update() {
           if (dataPoint.precipitationGroupTotal) {
             const roundedValue = Math.round(dataPoint.precipitationGroupTotal);
             const formattedValue =
-              roundedValue === 0 ? "<1 mm" : roundedValue + " mm";
-            addBullet(
-              precipSeries,
-              index,
-              formattedValue,
-              "precipitation",
-              am5.p50,
-              am5.p0,
-            );
+              roundedValue === 0 ? "" : roundedValue + " mm";
+            if (formattedValue) {
+              addBullet(
+                precipSeries,
+                index,
+                formattedValue,
+                "precipitation",
+                am5.p50,
+                am5.p0,
+              );
+            }
           }
         });
       }
