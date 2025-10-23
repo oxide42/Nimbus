@@ -56,6 +56,7 @@ class WeatherService {
 
   /**
    * Group consecutive precipitation periods and mark the middle point with total precipitation
+   * A group continues if only one period of dry weather separates it from the next precipitation
    * @param {Array} data - Weather data with precipitation values
    * @returns {Array} - Weather data with precipitation groups marked
    */
@@ -63,6 +64,7 @@ class WeatherService {
     let inGroup = false;
     let groupStart = -1;
     let groupTotal = 0;
+    let dryCount = 0;
 
     for (let i = 0; i < data.length; i++) {
       const hasPrecip = data[i].precipitation > 0;
@@ -72,27 +74,39 @@ class WeatherService {
         inGroup = true;
         groupStart = i;
         groupTotal = data[i].precipitation;
+        dryCount = 0;
       } else if (hasPrecip && inGroup) {
-        // Continue current group
+        // Continue current group (precipitation after 0 or 1 dry periods)
         groupTotal += data[i].precipitation;
+        dryCount = 0;
       } else if (!hasPrecip && inGroup) {
-        // End current group
-        const groupEnd = i - 1;
-        const groupMiddle = Math.floor((groupStart + groupEnd) / 2);
+        // Dry period within a group
+        dryCount++;
 
-        // Mark the middle point with the total precipitation for the group
-        data[groupMiddle].precipitationGroupTotal = groupTotal;
-        data[groupMiddle].precipitationGroupStart = groupStart;
-        data[groupMiddle].precipitationGroupEnd = groupEnd;
+        // Check if next period has precipitation (look ahead)
+        const hasNextPrecip =
+          i + 1 < data.length && data[i + 1].precipitation > 0;
 
-        inGroup = false;
-        groupTotal = 0;
+        if (dryCount >= 2 || (dryCount === 1 && !hasNextPrecip)) {
+          // End current group (2+ dry periods, or 1 dry period with no precipitation after)
+          const groupEnd = i - dryCount;
+          const groupMiddle = Math.floor((groupStart + groupEnd) / 2);
+
+          // Mark the middle point with the total precipitation for the group
+          data[groupMiddle].precipitationGroupTotal = groupTotal;
+          data[groupMiddle].precipitationGroupStart = groupStart;
+          data[groupMiddle].precipitationGroupEnd = groupEnd;
+
+          inGroup = false;
+          groupTotal = 0;
+          dryCount = 0;
+        }
       }
     }
 
     // Handle case where precipitation group extends to end of data
     if (inGroup) {
-      const groupEnd = data.length - 1;
+      const groupEnd = data.length - 1 - dryCount;
       const groupMiddle = Math.floor((groupStart + groupEnd) / 2);
 
       data[groupMiddle].precipitationGroupTotal = groupTotal;
