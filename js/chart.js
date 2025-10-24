@@ -326,13 +326,16 @@ function update() {
       },
       precipFillSettings: {
         stroke: item.precipitation < 0.01 ? "#FFFFFF" : "#afafaf",
-        fill: this.gradientColor(
-          item.precipitation,
-          0,
-          10,
-          "#ffffff",
-          "#0000ff",
-        ),
+        fill:
+          item.precipitation < 0.01
+            ? "#FFFFFF"
+            : this.gradientColor(
+                item.precipitation,
+                0,
+                10,
+                "#E0E0E0",
+                "#0000ff",
+              ),
       },
     }));
   }
