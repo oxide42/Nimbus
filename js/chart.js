@@ -126,6 +126,9 @@ function update() {
         zoomY: false,
         extraMax: 0,
         extraMin: 0,
+        // Position data points at the start of the interval
+        startLocation: 0,
+        endLocation: 1,
       }),
     );
 
@@ -206,6 +209,8 @@ function update() {
         valueYField: "temperature",
         valueXField: "time",
         tension: 0.3,
+        // Position bullets at the start of the interval
+        locationX: 0,
       }),
     );
 
@@ -228,6 +233,8 @@ function update() {
         valueYField: "precipitationBar",
         openValueYField: "precipitationBase",
         valueXField: "time",
+        // Make segments span the full interval
+        locationX: 0,
       }),
     );
 
@@ -249,6 +256,8 @@ function update() {
         valueYField: "sunHoursBar",
         openValueYField: "sunHoursBase",
         valueXField: "time",
+        // Make segments span the full interval
+        locationX: 0,
       }),
     );
 
@@ -271,6 +280,8 @@ function update() {
         valueYField: "windSpeed",
         openValueYField: "windBase",
         tension: 0.3,
+        // Make segments span the full interval
+        locationX: 0,
       }),
     );
 
