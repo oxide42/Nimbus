@@ -7,6 +7,7 @@ class Settings {
       tempUnit: "celsius",
       windUnit: "ms",
       showWindGusts: false,
+      showCurrentWeather: true,
       locationCacheMinutes: 15,
       owmForecastType: "3-hourly",
     };
@@ -28,6 +29,7 @@ class Settings {
     this.settings.tempUnit = tempUnit.value;
     this.settings.windUnit = windUnit.value;
     this.settings.showWindGusts = showWindGusts.value;
+    this.settings.showCurrentWeather = showCurrentWeather.value;
     this.settings.locationCacheMinutes =
       parseInt(locationCacheMinutes.value) || 30;
     this.settings.owmForecastType = owmForecastType.value;
@@ -48,6 +50,10 @@ class Settings {
     return this.settings.showWindGusts == "true";
   }
 
+  getShowCurrentWeather() {
+    return this.settings.showCurrentWeather == "true";
+  }
+
   initializeUI() {
     const weatherProvider = document.getElementById("weatherProvider");
     const owmApiToken = document.getElementById("owmApiToken");
@@ -56,6 +62,7 @@ class Settings {
     const tempUnit = document.getElementById("tempUnit");
     const windUnit = document.getElementById("windUnit");
     const showWindGusts = document.getElementById("showWindGusts");
+    const showCurrentWeather = document.getElementById("showCurrentWeather");
     const locationCacheMinutes = document.getElementById(
       "locationCacheMinutes",
     );
@@ -66,6 +73,7 @@ class Settings {
     tempUnit.value = this.settings.tempUnit;
     windUnit.value = this.settings.windUnit;
     showWindGusts.value = this.settings.showWindGusts;
+    showCurrentWeather.value = this.settings.showCurrentWeather;
     locationCacheMinutes.value = this.settings.locationCacheMinutes;
     owmForecastType.value = this.settings.owmForecastType;
 

@@ -59,10 +59,75 @@ class WeatherApp {
       );
       chartContainer.innerHTML = "";
       this.weatherChart.createChart(result.data);
+      this.displayCurrentWeather(result.data);
       this.displayAlerts(result.alerts || []);
     } catch (error) {
       chartContainer.innerHTML = `<div class="error">Error: ${error.message}</div>`;
     }
+  }
+
+  displayCurrentWeather(weatherData) {
+    const container = document.getElementById("currentWeatherContainer");
+
+    if (!this.settings.getShowCurrentWeather()) {
+      container.classList.add("hidden");
+      container.innerHTML = "";
+      return;
+    }
+
+    container.classList.remove("hidden");
+
+    // Get the first data point (current weather)
+    const current = weatherData[0];
+
+    if (!current) {
+      container.classList.add("hidden");
+      return;
+    }
+
+    const temp = Math.round(current.temperature);
+    const feelsLike = Math.round(current.temperature); // You can add feels-like calculation if available
+    const precipitation = current.precipitation
+      ? current.precipitation.toFixed(1)
+      : "0.0";
+    const precipProb = current.precipitationProb
+      ? Math.round(current.precipitationProb)
+      : 0;
+    const windSpeed = Math.round(current.windSpeed);
+    const windGusts = current.windGusts
+      ? Math.round(current.windGusts)
+      : windSpeed;
+    const sunHours = current.sunHours ? current.sunHours.toFixed(1) : "0.0";
+
+    container.innerHTML = `
+      <div class="current-weather-grid">
+        <div class="current-weather-main">
+          <div class="current-temp">${temp}${this.settings.getTemperatureUnit()}</div>
+          <div class="current-details">
+            <div class="current-condition">Now</div>
+            <div class="current-feels-like">Feels like ${feelsLike}${this.settings.getTemperatureUnit()}</div>
+          </div>
+        </div>
+        <div class="current-weather-stats">
+          <div class="weather-stat">
+            <div class="weather-stat-label">Precipitation</div>
+            <div class="weather-stat-value">${precipitation} mm (${precipProb}%)</div>
+          </div>
+          <div class="weather-stat">
+            <div class="weather-stat-label">Wind</div>
+            <div class="weather-stat-value">${windSpeed} ${this.settings.getWindSpeedUnit()}</div>
+          </div>
+          <div class="weather-stat">
+            <div class="weather-stat-label">Wind Gusts</div>
+            <div class="weather-stat-value">${windGusts} ${this.settings.getWindSpeedUnit()}</div>
+          </div>
+          <div class="weather-stat">
+            <div class="weather-stat-label">Sunshine</div>
+            <div class="weather-stat-value">${sunHours}%</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   formatAlertDate(date) {

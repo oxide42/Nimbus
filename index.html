@@ -26,6 +26,10 @@
             </nav>
 
             <main id="mainPage" class="page active">
+                <div
+                    id="currentWeatherContainer"
+                    class="current-weather-container"
+                ></div>
                 <div id="chartContainer" class="chart-container"></div>
                 <div id="alertsContainer" class="alerts-container"></div>
             </main>
@@ -91,6 +95,16 @@
                 <div class="setting-group">
                     <label for="showWindGusts">Show Wind Gusts:</label>
                     <select id="showWindGusts">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label for="showCurrentWeather"
+                        >Show Current Weather:</label
+                    >
+                    <select id="showCurrentWeather">
                         <option value="true">Yes</option>
                         <option value="false">No</option>
                     </select>
