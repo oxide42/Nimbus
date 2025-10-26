@@ -97,7 +97,7 @@ class WeatherApp {
     const windGusts = current.windGusts
       ? Math.round(current.windGusts)
       : windSpeed;
-    const sunHours = current.sunHours ? current.sunHours.toFixed(1) : "0.0";
+    const sunHours = current.sunHours ? current.sunHours.toFixed(0) : "0";
 
     container.innerHTML = `
       <div class="current-weather-grid">
@@ -114,16 +114,16 @@ class WeatherApp {
             <div class="weather-stat-value">${precipitation} mm (${precipProb}%)</div>
           </div>
           <div class="weather-stat">
+            <div class="weather-stat-label">Sunshine</div>
+            <div class="weather-stat-value">${sunHours}%</div>
+          </div>
+          <div class="weather-stat">
             <div class="weather-stat-label">Wind</div>
             <div class="weather-stat-value">${windSpeed} ${this.settings.getWindSpeedUnit()}</div>
           </div>
           <div class="weather-stat">
             <div class="weather-stat-label">Wind Gusts</div>
             <div class="weather-stat-value">${windGusts} ${this.settings.getWindSpeedUnit()}</div>
-          </div>
-          <div class="weather-stat">
-            <div class="weather-stat-label">Sunshine</div>
-            <div class="weather-stat-value">${sunHours}%</div>
           </div>
         </div>
       </div>
