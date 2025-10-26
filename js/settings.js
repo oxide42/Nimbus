@@ -10,9 +10,10 @@ class Settings {
       showCurrentWeather: true,
       locationCacheMinutes: 15,
       owmForecastType: "3-hourly",
+      language: null, // null means auto-detect from browser
     };
     this.settings = this.loadSettings();
-    this.initializeUI();
+    this.i18n = null;
   }
 
   loadSettings() {
@@ -33,6 +34,7 @@ class Settings {
     this.settings.locationCacheMinutes =
       parseInt(locationCacheMinutes.value) || 30;
     this.settings.owmForecastType = owmForecastType.value;
+    this.settings.language = languageSelect.value;
 
     localStorage.setItem("nimbus-settings", JSON.stringify(this.settings));
   }
@@ -54,7 +56,9 @@ class Settings {
     return this.settings.showCurrentWeather == "true";
   }
 
-  initializeUI() {
+  async initializeUI(i18n) {
+    this.i18n = i18n;
+
     const weatherProvider = document.getElementById("weatherProvider");
     const owmApiToken = document.getElementById("owmApiToken");
     const owmForecastType = document.getElementById("owmForecastType");
@@ -66,6 +70,7 @@ class Settings {
     const locationCacheMinutes = document.getElementById(
       "locationCacheMinutes",
     );
+    const languageSelect = document.getElementById("languageSelect");
 
     weatherProvider.value = this.settings.weatherProvider;
     owmApiToken.value = this.settings.owmApiToken;
@@ -76,6 +81,10 @@ class Settings {
     showCurrentWeather.value = this.settings.showCurrentWeather;
     locationCacheMinutes.value = this.settings.locationCacheMinutes;
     owmForecastType.value = this.settings.owmForecastType;
+    languageSelect.value = this.settings.language || i18n.getCurrentLanguage();
+
+    // Update all text with translations
+    this.updateUIText();
 
     // Show/hide API token field based on provider
     this.toggleFields(this.settings.weatherProvider);
@@ -84,6 +93,107 @@ class Settings {
     weatherProvider.addEventListener("change", (e) => {
       this.toggleFields(e.target.value);
     });
+
+    // Listen for language changes
+    languageSelect.addEventListener("change", async (e) => {
+      await i18n.loadLanguage(e.target.value);
+      this.updateUIText();
+      // Notify app to reload
+      if (window.weatherApp) {
+        window.weatherApp.updateAllText();
+      }
+    });
+  }
+
+  updateUIText() {
+    if (!this.i18n) return;
+
+    const t = this.i18n.t.bind(this.i18n);
+
+    // Update page title
+    document.querySelector(".nav-title h1").textContent = t("app.title");
+
+    // Update settings page
+    document.querySelector("#settingsPage h2").textContent =
+      t("settings.title");
+
+    // Update labels
+    this.updateLabel("weatherProvider", t("settings.weatherProvider"));
+    this.updateLabel("owmApiToken", t("settings.owmApiToken"));
+    this.updateLabel("owmForecastType", t("settings.owmForecastType"));
+    this.updateLabel("dmiApiToken", t("settings.dmiApiToken"));
+    this.updateLabel("tempUnit", t("settings.tempUnit"));
+    this.updateLabel("windUnit", t("settings.windUnit"));
+    this.updateLabel("showWindGusts", t("settings.showWindGusts"));
+    this.updateLabel("showCurrentWeather", t("settings.showCurrentWeather"));
+    this.updateLabel(
+      "locationCacheMinutes",
+      t("settings.locationCacheMinutes"),
+    );
+    this.updateLabel("languageSelect", t("settings.language"));
+
+    // Update placeholders
+    document.getElementById("owmApiToken").placeholder = t(
+      "settings.owmApiTokenPlaceholder",
+    );
+    document.getElementById("dmiApiToken").placeholder = t(
+      "settings.dmiApiTokenPlaceholder",
+    );
+
+    // Update select options
+    this.updateSelectOptions("weatherProvider", {
+      openweathermap: t("providers.openweathermap"),
+      openmeteo: t("providers.openmeteo"),
+      dmi: t("providers.dmi"),
+    });
+
+    this.updateSelectOptions("owmForecastType", {
+      hourly: t("forecast.hourly"),
+      "3-hourly": t("forecast.threeHourly"),
+      daily: t("forecast.daily"),
+    });
+
+    this.updateSelectOptions("tempUnit", {
+      celsius: t("units.celsius"),
+      fahrenheit: t("units.fahrenheit"),
+    });
+
+    this.updateSelectOptions("windUnit", {
+      ms: t("units.ms"),
+      kmh: t("units.kmh"),
+      mph: t("units.mph"),
+      knots: t("units.knots"),
+    });
+
+    this.updateSelectOptions("showWindGusts", {
+      true: t("settings.yes"),
+      false: t("settings.no"),
+    });
+
+    this.updateSelectOptions("showCurrentWeather", {
+      true: t("settings.yes"),
+      false: t("settings.no"),
+    });
+  }
+
+  updateLabel(forId, text) {
+    const label = document.querySelector(`label[for="${forId}"]`);
+    if (label) {
+      label.textContent = text + ":";
+    }
+  }
+
+  updateSelectOptions(selectId, options) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const currentValue = select.value;
+    Array.from(select.options).forEach((option) => {
+      if (options[option.value]) {
+        option.textContent = options[option.value];
+      }
+    });
+    select.value = currentValue;
   }
 
   toggleFields(provider) {

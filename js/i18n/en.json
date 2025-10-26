@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "Nimbus Weather",
+    "loading": "Loading location...",
+    "loadingWeather": "Loading weather data...",
+    "error": "Error: {{message}}"
+  },
+  "buttons": {
+    "refresh": "Refresh",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "weatherProvider": "Weather Provider",
+    "owmApiToken": "OpenWeatherMap API Token",
+    "owmApiTokenPlaceholder": "Enter your OpenWeatherMap API token",
+    "owmForecastType": "OpenWeatherMap Forecast Type",
+    "dmiApiToken": "DMI API Token",
+    "dmiApiTokenPlaceholder": "Enter your DMI API token",
+    "tempUnit": "Temperature Unit",
+    "windUnit": "Wind Speed Unit",
+    "showWindGusts": "Show Wind Gusts",
+    "showCurrentWeather": "Show Current Weather",
+    "locationCacheMinutes": "Location Cache Duration (minutes)",
+    "language": "Language",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "providers": {
+    "openweathermap": "OpenWeatherMap",
+    "openmeteo": "Open-Meteo",
+    "dmi": "DMI (Danmarks Meteorologiske Institut)"
+  },
+  "forecast": {
+    "hourly": "Hourly",
+    "threeHourly": "3-Hourly",
+    "daily": "Daily"
+  },
+  "units": {
+    "celsius": "Celsius (°C)",
+    "fahrenheit": "Fahrenheit (°F)",
+    "ms": "m/s",
+    "kmh": "km/h",
+    "mph": "mph",
+    "knots": "knots"
+  },
+  "currentWeather": {
+    "temperature": "Temperature",
+    "feelsLike": "Feels like",
+    "precipitation": "Precipitation",
+    "precipitationProb": "Precipitation probability",
+    "wind": "Wind",
+    "gusts": "Gusts",
+    "sun": "Sun"
+  },
+  "alerts": {
+    "title": "Weather Alerts"
+  }
+}

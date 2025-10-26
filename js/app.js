@@ -1,11 +1,26 @@
 class WeatherApp {
   constructor() {
     this.settings = new Settings();
+    this.i18n = new I18n();
+    this.init();
+  }
+
+  async init() {
+    // Initialize i18n first
+    await this.i18n.init(this.settings);
+
+    // Initialize settings UI with i18n
+    await this.settings.initializeUI(this.i18n);
+
+    // Initialize services
     this.weatherService = new WeatherService(this.settings);
     this.locationService = new LocationService(this.settings);
     this.weatherChart = new WeatherChart(this.settings);
     this.currentForecastType = this.settings.getForecastType();
+
+    // Initialize UI and load data
     this.initializeUI();
+    this.updateAllText();
     this.loadWeatherData();
     this.loadLocationName();
   }
@@ -48,10 +63,20 @@ class WeatherApp {
     }
   }
 
+  updateAllText() {
+    const t = this.i18n.t.bind(this.i18n);
+
+    // Update location loading text
+    const locationName = document.getElementById("locationName");
+    if (locationName.textContent === "Loading location...") {
+      locationName.textContent = t("app.loading");
+    }
+  }
+
   async loadWeatherData() {
+    const t = this.i18n.t.bind(this.i18n);
     const chartContainer = document.getElementById("chartContainer");
-    chartContainer.innerHTML =
-      '<div class="loading">Loading weather data...</div>';
+    chartContainer.innerHTML = `<div class="loading">${t("app.loadingWeather")}</div>`;
 
     try {
       const result = await this.weatherService.fetchWeatherData(
@@ -62,11 +87,12 @@ class WeatherApp {
       this.displayCurrentWeather(result.data);
       this.displayAlerts(result.alerts || []);
     } catch (error) {
-      chartContainer.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+      chartContainer.innerHTML = `<div class="error">${t("app.error", { message: error.message })}</div>`;
     }
   }
 
   displayCurrentWeather(weatherData) {
+    const t = this.i18n.t.bind(this.i18n);
     const container = document.getElementById("currentWeatherContainer");
 
     if (!this.settings.getShowCurrentWeather()) {
@@ -105,24 +131,24 @@ class WeatherApp {
           <div class="current-temp">${temp}${this.settings.getTemperatureUnit()}</div>
           <div class="current-details">
             <div class="current-condition">Now</div>
-            <div class="current-feels-like">Feels like ${feelsLike}${this.settings.getTemperatureUnit()}</div>
+            <div class="current-feels-like">${t("currentWeather.feelsLike")} ${feelsLike}${this.settings.getTemperatureUnit()}</div>
           </div>
         </div>
         <div class="current-weather-stats">
           <div class="weather-stat">
-            <div class="weather-stat-label">Precipitation</div>
+            <div class="weather-stat-label">${t("currentWeather.precipitation")}</div>
             <div class="weather-stat-value">${precipitation} mm (${precipProb}%)</div>
           </div>
           <div class="weather-stat">
-            <div class="weather-stat-label">Sunshine</div>
+            <div class="weather-stat-label">${t("currentWeather.sun")}</div>
             <div class="weather-stat-value">${sunHours}%</div>
           </div>
           <div class="weather-stat">
-            <div class="weather-stat-label">Wind</div>
+            <div class="weather-stat-label">${t("currentWeather.wind")}</div>
             <div class="weather-stat-value">${windSpeed} ${this.settings.getWindSpeedUnit()}</div>
           </div>
           <div class="weather-stat">
-            <div class="weather-stat-label">Wind Gusts</div>
+            <div class="weather-stat-label">${t("currentWeather.gusts")}</div>
             <div class="weather-stat-value">${windGusts} ${this.settings.getWindSpeedUnit()}</div>
           </div>
         </div>
@@ -144,6 +170,7 @@ class WeatherApp {
   }
 
   displayAlerts(alerts) {
+    const t = this.i18n.t.bind(this.i18n);
     const alertsContainer = document.getElementById("alertsContainer");
 
     if (!alerts || alerts.length === 0) {
@@ -153,15 +180,19 @@ class WeatherApp {
     }
 
     alertsContainer.classList.remove("hidden");
-    alertsContainer.innerHTML = alerts
-      .map((alert) => {
-        const startDate = this.formatAlertDate(alert.start);
-        const endDate = this.formatAlertDate(alert.end);
-        const isSevere =
-          alert.tags &&
-          (alert.tags.includes("Extreme") || alert.tags.includes("Severe"));
 
-        return `
+    const alertsTitle = `<h3>${t("alerts.title")}</h3>`;
+    alertsContainer.innerHTML =
+      alertsTitle +
+      alerts
+        .map((alert) => {
+          const startDate = this.formatAlertDate(alert.start);
+          const endDate = this.formatAlertDate(alert.end);
+          const isSevere =
+            alert.tags &&
+            (alert.tags.includes("Extreme") || alert.tags.includes("Severe"));
+
+          return `
         <div class="alert-item${isSevere ? " severe" : ""}">
           <div class="alert-header">
             <div>
@@ -184,8 +215,8 @@ class WeatherApp {
           }
         </div>
       `;
-      })
-      .join("");
+        })
+        .join("");
   }
 
   async loadLocationName() {
@@ -207,5 +238,5 @@ class WeatherApp {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  new WeatherApp();
+  window.weatherApp = new WeatherApp();
 });
