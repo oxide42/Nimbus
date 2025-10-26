@@ -80,6 +80,31 @@ function update() {
       ev.target.get("xAxis").zoomToDates(firstDate, lastDate);
     });
 
+    tempSeries.events.on("datavalidated", function () {
+      let xAxis = tempSeries.get("xAxis");
+      let renderer = xAxis.get("renderer");
+
+      tempSeries.dataItems.forEach(function (dataItem, index) {
+        let startTimestamp = dataItem.get("valueX");
+        let endTimestamp =
+          index < tempSeries.dataItems.length - 1
+            ? tempSeries.dataItems[index + 1].get("valueX")
+            : startTimestamp + 24 * 60 * 60 * 1000; // fallback: add 1 day
+
+        let startPosition = xAxis.dateToPosition(new Date(startTimestamp));
+        let endPosition = xAxis.dateToPosition(new Date(endTimestamp));
+
+        let startPixel = renderer.positionToCoordinate(startPosition);
+        let endPixel = renderer.positionToCoordinate(endPosition);
+
+        let width = Math.abs(endPixel - startPixel);
+
+        if (width < 50) {
+          self.onTimeslotWidthBelowThreshold(width, xAxis);
+        }
+      });
+    });
+
     this.setupBullets(
       root,
       tempSeries,
@@ -92,9 +117,22 @@ function update() {
     this.chart = root;
   }
 
-  //
-  // Axes
-  //
+  onTimeslotWidthBelowThreshold(width, xAxis) {
+    // Event handler triggered when timeslot width is less than 50px
+    console.log(`Timeslot width below threshold: ${width.toFixed(2)}px`);
+
+    // You can add custom behavior here, such as:
+    // - Hiding labels to reduce clutter
+    // - Changing visualization style
+    // - Showing a warning to the user
+    // - Adjusting the minimum grid distance
+
+    // Example: Update minGridDistance to prevent overcrowding
+    const renderer = xAxis.get("renderer");
+    if (width < 50 && width > 0) {
+      renderer.set("minGridDistance", Math.ceil(50 / width) * 40);
+    }
+  }
 
   createXAxis(root, chart) {
     const forecastType = this.settings.getForecastType();
