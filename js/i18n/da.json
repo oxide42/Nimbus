@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Nimbus Vejr",
+    "title": "Nimbus Vejret",
     "loading": "Indlæser placering...",
     "loadingWeather": "Indlæser vejrdata...",
     "error": "Fejl: {{message}}"
@@ -18,10 +18,10 @@
     "dmiApiToken": "DMI API-nøgle",
     "dmiApiTokenPlaceholder": "Indtast din DMI API-nøgle",
     "tempUnit": "Temperaturenhed",
-    "windUnit": "Vindhastighed Enhed",
+    "windUnit": "Enhed for vind",
     "showWindGusts": "Vis Vindstød",
     "showCurrentWeather": "Vis Nuværende Vejr",
-    "locationCacheMinutes": "Placeringscache Varighed (minutter)",
+    "locationCacheMinutes": "Cache Varighed (minutter)",
     "language": "Sprog",
     "yes": "Ja",
     "no": "Nej"

@@ -208,17 +208,15 @@ function update() {
         yAxis: yAxis,
         valueYField: "temperature",
         valueXField: "time",
-        tension: 0.3,
+        tension: 0.8,
         // Position bullets at the start of the interval
         locationX: 0,
       }),
     );
 
-    tempSeries.set("fill", am5.color("#ff0000"));
-    tempSeries.set("stroke", am5.color("#ff0000"));
     tempSeries.strokes.template.setAll({
       strokeWidth: 3,
-      templateField: "strokeSettings",
+      templateField: "tempStrokeSettings",
     });
 
     return tempSeries;
@@ -323,7 +321,7 @@ function update() {
       sunHours: item.sunHours,
       sunHoursBase: 0,
       sunHoursBar: 0.5,
-      precipitationBase: 0,
+      precipitationBase: 0.5,
       precipitationBar: 1,
       windBase: this.settings.getShowWindGusts() ? item.windSpeed : 0,
       windSpeed: this.settings.getShowWindGusts()
@@ -331,6 +329,12 @@ function update() {
         : item.windSpeed,
       sunFillSettings: {
         fill: this.gradientColor(item.sunHours, 0, 50, "#888888", "#ffff22"),
+      },
+      tempStrokeSettings: {
+        fill:
+          item.temperature > 0 ? am5.color("#ff0000") : am5.color("#0000ff"),
+        stroke:
+          item.temperature > 0 ? am5.color("#ff0000") : am5.color("#0000ff"),
       },
       windStrokeSettings: {
         stroke: this.gradientColor(item.windSpeed, 0, 24, "#ffffff", "#ff0000"),
@@ -340,13 +344,21 @@ function update() {
         fill:
           item.precipitation < 0.01
             ? "#FFFFFF"
-            : this.gradientColor(
-                item.precipitation,
-                0,
-                10,
-                "#E0E0E0",
-                "#0000ff",
-              ),
+            : item.precipitation < 10
+              ? this.gradientColor(
+                  item.precipitation,
+                  0,
+                  10,
+                  "#E0E0E0",
+                  "#0000ff",
+                )
+              : this.gradientColor(
+                  item.precipitation,
+                  10,
+                  25,
+                  "#0000ff",
+                  "#ff0000",
+                ),
       },
     }));
   }
