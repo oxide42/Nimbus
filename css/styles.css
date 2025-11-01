@@ -224,7 +224,7 @@ body.dark-mode .loading {
 
 @media (max-width: 768px) {
     .current-weather-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 2fr 2fr;
         gap: 12px;
     }
 
