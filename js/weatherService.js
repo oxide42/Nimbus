@@ -42,13 +42,13 @@ class WeatherService {
   }
 
   #smooth(data) {
-    const temp_ema = this.#ema(data, "temperature", 3);
+    //const temp_ema = this.#ema(data, "temperature", 3);
     const wind_ema = this.#ema(data, "windSpeed", 4);
     const windgusts_ema = this.#ema(data, "windGusts", 4);
 
     // Apply ema on data structure
     data.forEach((item, index) => {
-      item.temperature = temp_ema[index];
+      //item.temperature = temp_ema[index];
       item.windSpeed = wind_ema[index];
       item.windGusts = windgusts_ema[index];
     });
