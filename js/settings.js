@@ -53,7 +53,7 @@ class Settings {
   }
 
   getShowCurrentWeather() {
-    return this.settings.showCurrentWeather == "true";
+    return this.settings.showCurrentWeather != "false";
   }
 
   async initializeUI(i18n) {
