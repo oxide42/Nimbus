@@ -117,7 +117,7 @@ function update() {
         },
         markUnitChange: true,
         renderer: am5xy.AxisRendererX.new(root, {
-          minGridDistance: 25,
+          minGridDistance: 22,
           opposite: true,
           maxLabelPosition: 0.95,
           minLabelPosition: 0.05,
