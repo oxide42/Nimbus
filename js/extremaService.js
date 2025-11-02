@@ -17,241 +17,96 @@ class ExtremaService {
     // Ensure properties is an array
     const propsArray = Array.isArray(properties) ? properties : [properties];
 
-    // Create maps for each property
-    const minimaMap = new Map(); // index -> [property names]
-    const maximaMap = new Map(); // index -> [property names]
-
+    // Process each property and mark extrema directly on timeseries
     propsArray.forEach((property) => {
-      const localExtrema = this.#findLocalExtrema(timeSeries, property);
-
-      localExtrema.minima.forEach((e) => {
-        if (!minimaMap.has(e.index)) {
-          minimaMap.set(e.index, []);
-        }
-        minimaMap.get(e.index).push(property);
-      });
-
-      localExtrema.maxima.forEach((e) => {
-        if (!maximaMap.has(e.index)) {
-          maximaMap.set(e.index, []);
-        }
-        maximaMap.get(e.index).push(property);
-      });
+      this.#findLocalExtrema(timeSeries, property);
     });
 
-    // Mark each datapoint
-    return timeSeries.map((dataPoint, index) => {
-      const minima = minimaMap.get(index);
-      const maxima = maximaMap.get(index);
-
-      // Only add extrema property if there are any extrema
-      if (minima || maxima) {
-        const _extrema = {};
-        if (minima) _extrema.isMinima = minima;
-        if (maxima) _extrema.isMaxima = maxima;
-
-        return {
-          ...dataPoint,
-          extrema: _extrema,
-        };
-      }
-
-      return dataPoint;
-    });
+    return timeSeries;
   }
 
-  /**
-   * Find local extrema (minima and maxima) in a time series
-   * @param {Array} timeSeries - Array of data points
-   * @param {string} property - Property name to analyze (e.g., 'temperature')
-   * @returns {Object} - Object with minima and maxima arrays
-   */
-  #findLocalExtrema(timeSeries, property) {
-    return this.#smoothExtrema(this.#extremaSimple(timeSeries, property));
-  }
+  #findLocalExtrema(timeseries, property, windowSize = 5, minProminence = 0.5) {
+    if (timeseries.length < 3) return;
 
-  /**
-   * Simple extrema detection - finds all local minima and maxima
-   * @param {Array} timeSeries - Array of data points
-   * @param {string} property - Property name to analyze
-   * @returns {Object} - Object with minima and maxima arrays
-   */
-  #extremaSimple(timeSeries, property) {
-    const minima = [];
-    const maxima = [];
-    const length = timeSeries.length;
+    const data = timeseries.map((point) => point[property]);
+    const n = data.length;
 
-    if (length === 0) return { minima, maxima };
+    let lastMaximaIdx = -Infinity;
+    let lastMinimaIdx = -Infinity;
 
-    for (let i = 0; i < length; i++) {
-      const current = timeSeries[i][property];
-      const prev = i > 0 ? timeSeries[i - 1][property] : current;
-      const next = i < length - 1 ? timeSeries[i + 1][property] : current;
+    // Use adaptive window size near edges
+    for (let i = 1; i < n - 1; i++) {
+      const current = data[i];
 
-      const point = { index: i, value: current, time: timeSeries[i].time };
+      // Determine actual window size based on position
+      const leftWindow = Math.min(windowSize, i);
+      const rightWindow = Math.min(windowSize, n - 1 - i);
+      const actualWindow = Math.min(leftWindow, rightWindow);
 
-      // Check for maximum
-      if (current >= prev && current > next) {
-        maxima.push(point);
-      }
-      // Check for minimum
-      else if (current <= prev && current < next) {
-        minima.push(point);
-      }
-    }
+      if (actualWindow < 2) continue; // Need at least 2 points on each side
 
-    return {
-      minima: minima,
-      maxima: maxima,
-    };
-  }
+      // Get values in left and right windows
+      const leftValues = data.slice(i - actualWindow, i);
+      const rightValues = data.slice(i + 1, i + actualWindow + 1);
 
-  /**
-   * Smooth/filter extrema to remove noise and close duplicates
-   * @param {Object} extrema - Object with minima and maxima arrays
-   * @returns {Object} - Filtered extrema
-   */
-  #smoothExtrema(extrema) {
-    // Adjust thresholds based on forecast type
-    const forecastType = this.settings.getForecastType();
-    let indexDistanceThreshold = this.indexDistanceThreshold;
-    if (forecastType === "hourly") {
-      indexDistanceThreshold = this.indexDistanceThreshold * 3; // More aggressive filtering for hourly
-    } else if (forecastType === "3-hourly") {
-      indexDistanceThreshold = this.indexDistanceThreshold * 1;
-    }
+      // Calculate averages
+      const leftAvg = leftValues.reduce((a, b) => a + b, 0) / leftValues.length;
+      const rightAvg =
+        rightValues.reduce((a, b) => a + b, 0) / rightValues.length;
 
-    let valueThresholdPct = this.valueThresholdPct;
-    let valueThresholdValue = this.valueThresholdValue;
+      // Find max/min in windows for prominence check
+      const leftMin = Math.min(...leftValues);
+      const leftMax = Math.max(...leftValues);
+      const rightMin = Math.min(...rightValues);
+      const rightMax = Math.max(...rightValues);
 
-    // Filter minima and maxima separately to avoid cross-filtering issues
-    const filterExtremaList = (extremaList, isMaxima) => {
-      if (extremaList.length === 0) return [];
+      // Check if this is a maximum
+      const isHigherThanBoth = current > leftAvg && current > rightAvg;
+      const maxProminence = Math.min(current - leftMin, current - rightMin);
 
-      const result = [];
-      let i = 0;
-
-      while (i < extremaList.length) {
-        let bestInGroup = extremaList[i];
-        let groupEnd = i;
-
-        // Find all extrema in this group (close in index and value)
-        for (let j = i + 1; j < extremaList.length; j++) {
-          const isCloseInIndex =
-            extremaList[j].index - bestInGroup.index <= indexDistanceThreshold;
-
-          let isCloseInValue =
-            Math.abs(
-              (extremaList[j].value - bestInGroup.value) /
-                Math.max(
-                  Math.abs(extremaList[j].value),
-                  Math.abs(bestInGroup.value),
-                ),
-            ) <= valueThresholdPct;
-
-          if (
-            Math.abs(extremaList[j].value - bestInGroup.value) <
-            valueThresholdValue
-          )
-            isCloseInValue = true;
-
-          if (isCloseInIndex && isCloseInValue) {
-            // Update best in group - keep the most extreme value
-            if (isMaxima && extremaList[j].value > bestInGroup.value) {
-              bestInGroup = extremaList[j];
-            } else if (!isMaxima && extremaList[j].value < bestInGroup.value) {
-              bestInGroup = extremaList[j];
-            }
-            groupEnd = j;
-          } else {
-            break;
-          }
-        }
-
-        result.push(bestInGroup);
-        i = groupEnd + 1;
-      }
-
-      return result;
-    };
-
-    // Step 1: Filter minima and maxima independently (same-type filtering)
-    let filteredMinima = filterExtremaList(extrema.minima, false);
-    let filteredMaxima = filterExtremaList(extrema.maxima, true);
-
-    // Step 2: Cross-type filtering - remove min/max pairs that are too close
-    const allExtrema = [
-      ...filteredMinima.map((e) => ({ ...e, type: "minimum" })),
-      ...filteredMaxima.map((e) => ({ ...e, type: "maximum" })),
-    ];
-    allExtrema.sort((a, b) => a.index - b.index);
-
-    const finalResult = [];
-    let skip = new Set();
-
-    for (let i = 0; i < allExtrema.length; i++) {
-      if (skip.has(i)) continue;
-
-      const current = allExtrema[i];
-      let keepCurrent = true;
-
-      // Check if next extremum is of different type and too close
-      if (i + 1 < allExtrema.length) {
-        const next = allExtrema[i + 1];
-
-        if (current.type !== next.type) {
-          const isCloseInIndex =
-            next.index - current.index <= indexDistanceThreshold;
-
-          let isCloseInValue =
-            Math.abs(
-              (next.value - current.value) /
-                Math.max(Math.abs(next.value), Math.abs(current.value)),
-            ) <= valueThresholdPct;
-
-          if (Math.abs(next.value - current.value) < valueThresholdValue)
-            isCloseInValue = true;
-
-          if (isCloseInIndex && isCloseInValue) {
-            // Keep the more extreme one (larger deviation from midpoint)
-            const midValue = (current.value + next.value) / 2;
-            const currentDeviation = Math.abs(current.value - midValue);
-            const nextDeviation = Math.abs(next.value - midValue);
-
-            if (nextDeviation > currentDeviation) {
-              keepCurrent = false;
-              skip.add(i);
-            } else {
-              skip.add(i + 1);
-            }
-          }
+      if (isHigherThanBoth && maxProminence >= minProminence) {
+        // Make sure it's higher than immediate neighbors and not too close to last maxima
+        if (
+          current >= data[i - 1] &&
+          current >= data[i + 1] &&
+          i - lastMaximaIdx > actualWindow
+        ) {
+          if (!timeseries[i].extrema) timeseries[i].extrema = {};
+          if (!timeseries[i].extrema.isMaxima)
+            timeseries[i].extrema.isMaxima = [];
+          timeseries[i].extrema.isMaxima.push(property);
+          lastMaximaIdx = i;
         }
       }
 
-      if (keepCurrent) {
-        finalResult.push(current);
+      // Check if this is a minimum
+      const isLowerThanBoth = current < leftAvg && current < rightAvg;
+      const valleyProminence = Math.min(leftMax - current, rightMax - current);
+
+      if (isLowerThanBoth && valleyProminence >= minProminence) {
+        // Make sure it's lower than immediate neighbors and not too close to last minima
+        if (
+          current <= data[i - 1] &&
+          current <= data[i + 1] &&
+          i - lastMinimaIdx > actualWindow
+        ) {
+          if (!timeseries[i].extrema) timeseries[i].extrema = {};
+          if (!timeseries[i].extrema.isMinima)
+            timeseries[i].extrema.isMinima = [];
+          timeseries[i].extrema.isMinima.push(property);
+          lastMinimaIdx = i;
+        }
       }
     }
 
-    // Separate back into minima and maxima
-    filteredMinima = finalResult
-      .filter((e) => e.type === "minimum")
-      .map((e) => ({
-        index: e.index,
-        value: e.value,
-        time: e.time,
-      }));
-    filteredMaxima = finalResult
-      .filter((e) => e.type === "maximum")
-      .map((e) => ({
-        index: e.index,
-        value: e.value,
-        time: e.time,
-      }));
-
-    return {
-      minima: filteredMinima,
-      maxima: filteredMaxima,
-    };
+    // Log the first 20 temperatures together with their extrema info
+    console.log(
+      timeseries.slice(20, 40).map((item) =>
+        JSON.stringify({
+          temperature: item.temperature || {},
+          extrema: item.extrema || {},
+        }),
+      ),
+    );
   }
 }
