@@ -25,7 +25,15 @@ class ExtremaService {
     return timeSeries;
   }
 
-  #findLocalExtrema(timeseries, property, windowSize = 5, minProminence = 0.5) {
+  #findLocalExtrema(
+    timeseries,
+    property,
+    windowSize = 5,
+    baseProminence = 3,
+    decayDistance = 12,
+    minSeparation = 6, // Minimum points between opposite extrema types
+    minDifference = 1, // Minimum temperature difference between opposite extrema
+  ) {
     if (timeseries.length < 3) return;
 
     const data = timeseries.map((point) => point[property]);
@@ -33,8 +41,9 @@ class ExtremaService {
 
     let lastMaximaIdx = -Infinity;
     let lastMinimaIdx = -Infinity;
+    let lastMaximaValue = null;
+    let lastMinimaValue = null;
 
-    // Use adaptive window size near edges
     for (let i = 1; i < n - 1; i++) {
       const current = data[i];
 
@@ -43,7 +52,7 @@ class ExtremaService {
       const rightWindow = Math.min(windowSize, n - 1 - i);
       const actualWindow = Math.min(leftWindow, rightWindow);
 
-      if (actualWindow < 2) continue; // Need at least 2 points on each side
+      if (actualWindow < 2) continue;
 
       // Get values in left and right windows
       const leftValues = data.slice(i - actualWindow, i);
@@ -60,22 +69,38 @@ class ExtremaService {
       const rightMin = Math.min(...rightValues);
       const rightMax = Math.max(...rightValues);
 
+      // Calculate adaptive prominence threshold based on distance from last extrema
+      const distanceFromLastMaxima = i - lastMaximaIdx;
+      const distanceFromLastMinima = i - lastMinimaIdx;
+
+      const maxProminenceThreshold =
+        baseProminence * Math.exp(-distanceFromLastMaxima / decayDistance);
+      const minProminenceThreshold =
+        baseProminence * Math.exp(-distanceFromLastMinima / decayDistance);
+
       // Check if this is a maximum
       const isHigherThanBoth = current > leftAvg && current > rightAvg;
       const maxProminence = Math.min(current - leftMin, current - rightMin);
 
-      if (isHigherThanBoth && maxProminence >= minProminence) {
-        // Make sure it's higher than immediate neighbors and not too close to last maxima
-        if (
-          current >= data[i - 1] &&
-          current >= data[i + 1] &&
-          i - lastMaximaIdx > actualWindow
-        ) {
-          if (!timeseries[i].extrema) timeseries[i].extrema = {};
-          if (!timeseries[i].extrema.isMaxima)
-            timeseries[i].extrema.isMaxima = [];
-          timeseries[i].extrema.isMaxima.push(property);
-          lastMaximaIdx = i;
+      if (isHigherThanBoth && maxProminence >= maxProminenceThreshold) {
+        if (current >= data[i - 1] && current >= data[i + 1]) {
+          // Prevent marking maxima if too close to minima
+          const distanceToMinima = i - lastMinimaIdx;
+          const amplitudeFromMinima =
+            lastMinimaValue !== null ? current - lastMinimaValue : Infinity;
+
+          // Require EITHER sufficient distance OR sufficient amplitude change
+          const sufficientSeparation = distanceToMinima >= minSeparation;
+          const sufficientAmplitude = amplitudeFromMinima >= minDifference;
+
+          if (sufficientSeparation || sufficientAmplitude) {
+            if (!timeseries[i].extrema) timeseries[i].extrema = {};
+            if (!timeseries[i].extrema.isMaxima)
+              timeseries[i].extrema.isMaxima = [];
+            timeseries[i].extrema.isMaxima.push(property);
+            lastMaximaIdx = i;
+            lastMaximaValue = current;
+          }
         }
       }
 
@@ -83,25 +108,32 @@ class ExtremaService {
       const isLowerThanBoth = current < leftAvg && current < rightAvg;
       const valleyProminence = Math.min(leftMax - current, rightMax - current);
 
-      if (isLowerThanBoth && valleyProminence >= minProminence) {
-        // Make sure it's lower than immediate neighbors and not too close to last minima
-        if (
-          current <= data[i - 1] &&
-          current <= data[i + 1] &&
-          i - lastMinimaIdx > actualWindow
-        ) {
-          if (!timeseries[i].extrema) timeseries[i].extrema = {};
-          if (!timeseries[i].extrema.isMinima)
-            timeseries[i].extrema.isMinima = [];
-          timeseries[i].extrema.isMinima.push(property);
-          lastMinimaIdx = i;
+      if (isLowerThanBoth && valleyProminence >= minProminenceThreshold) {
+        if (current <= data[i - 1] && current <= data[i + 1]) {
+          // Prevent marking minima if too close to maxima
+          const distanceToMaxima = i - lastMaximaIdx;
+          const amplitudeFromMaxima =
+            lastMaximaValue !== null ? lastMaximaValue - current : Infinity;
+
+          // Require EITHER sufficient distance OR sufficient amplitude change
+          const sufficientSeparation = distanceToMaxima >= minSeparation;
+          const sufficientAmplitude = amplitudeFromMaxima >= minDifference;
+
+          if (sufficientSeparation || sufficientAmplitude) {
+            if (!timeseries[i].extrema) timeseries[i].extrema = {};
+            if (!timeseries[i].extrema.isMinima)
+              timeseries[i].extrema.isMinima = [];
+            timeseries[i].extrema.isMinima.push(property);
+            lastMinimaIdx = i;
+            lastMinimaValue = current;
+          }
         }
       }
     }
 
     // Log the first 20 temperatures together with their extrema info
     console.log(
-      timeseries.slice(20, 40).map((item) =>
+      timeseries.slice(0, 20).map((item) =>
         JSON.stringify({
           temperature: item.temperature || {},
           extrema: item.extrema || {},
