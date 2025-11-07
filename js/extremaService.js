@@ -31,8 +31,8 @@ class ExtremaService {
     windowSize = 5,
     baseProminence = 3,
     decayDistance = 12,
-    minSeparation = 6, // Minimum points between opposite extrema types
-    minDifference = 1, // Minimum temperature difference between opposite extrema
+    minSeparation = 6,
+    minDifference = 1,
   ) {
     if (timeseries.length < 3) return;
 
@@ -44,32 +44,68 @@ class ExtremaService {
     let lastMaximaValue = null;
     let lastMinimaValue = null;
 
+    // Helper function to mark extrema
+    const markMaxima = (idx) => {
+      if (!timeseries[idx].extrema) timeseries[idx].extrema = {};
+      if (!timeseries[idx].extrema.isMaxima)
+        timeseries[idx].extrema.isMaxima = [];
+      timeseries[idx].extrema.isMaxima.push(property);
+      lastMaximaIdx = idx;
+      lastMaximaValue = data[idx];
+    };
+
+    const markMinima = (idx) => {
+      if (!timeseries[idx].extrema) timeseries[idx].extrema = {};
+      if (!timeseries[idx].extrema.isMinima)
+        timeseries[idx].extrema.isMinima = [];
+      timeseries[idx].extrema.isMinima.push(property);
+      lastMinimaIdx = idx;
+      lastMinimaValue = data[idx];
+    };
+
+    // Check first point - is it a maxima?
+    if (n >= 2) {
+      const isStartMaxima = data
+        .slice(1, Math.min(n, windowSize + 1))
+        .every((v) => data[0] > v);
+      const prominence =
+        data[0] - Math.min(...data.slice(1, Math.min(n, windowSize + 1)));
+      if (isStartMaxima && prominence >= baseProminence) {
+        markMaxima(0);
+      }
+
+      const isStartMinima = data
+        .slice(1, Math.min(n, windowSize + 1))
+        .every((v) => data[0] < v);
+      const prominenceMin =
+        Math.max(...data.slice(1, Math.min(n, windowSize + 1))) - data[0];
+      if (isStartMinima && prominenceMin >= baseProminence) {
+        markMinima(0);
+      }
+    }
+
+    // Main loop for interior points
     for (let i = 1; i < n - 1; i++) {
       const current = data[i];
 
-      // Determine actual window size based on position
       const leftWindow = Math.min(windowSize, i);
       const rightWindow = Math.min(windowSize, n - 1 - i);
       const actualWindow = Math.min(leftWindow, rightWindow);
 
       if (actualWindow < 2) continue;
 
-      // Get values in left and right windows
       const leftValues = data.slice(i - actualWindow, i);
       const rightValues = data.slice(i + 1, i + actualWindow + 1);
 
-      // Calculate averages
       const leftAvg = leftValues.reduce((a, b) => a + b, 0) / leftValues.length;
       const rightAvg =
         rightValues.reduce((a, b) => a + b, 0) / rightValues.length;
 
-      // Find max/min in windows for prominence check
       const leftMin = Math.min(...leftValues);
       const leftMax = Math.max(...leftValues);
       const rightMin = Math.min(...rightValues);
       const rightMax = Math.max(...rightValues);
 
-      // Calculate adaptive prominence threshold based on distance from last extrema
       const distanceFromLastMaxima = i - lastMaximaIdx;
       const distanceFromLastMinima = i - lastMinimaIdx;
 
@@ -84,22 +120,15 @@ class ExtremaService {
 
       if (isHigherThanBoth && maxProminence >= maxProminenceThreshold) {
         if (current >= data[i - 1] && current >= data[i + 1]) {
-          // Prevent marking maxima if too close to minima
           const distanceToMinima = i - lastMinimaIdx;
           const amplitudeFromMinima =
             lastMinimaValue !== null ? current - lastMinimaValue : Infinity;
 
-          // Require EITHER sufficient distance OR sufficient amplitude change
           const sufficientSeparation = distanceToMinima >= minSeparation;
           const sufficientAmplitude = amplitudeFromMinima >= minDifference;
 
           if (sufficientSeparation || sufficientAmplitude) {
-            if (!timeseries[i].extrema) timeseries[i].extrema = {};
-            if (!timeseries[i].extrema.isMaxima)
-              timeseries[i].extrema.isMaxima = [];
-            timeseries[i].extrema.isMaxima.push(property);
-            lastMaximaIdx = i;
-            lastMaximaValue = current;
+            markMaxima(i);
           }
         }
       }
@@ -110,24 +139,61 @@ class ExtremaService {
 
       if (isLowerThanBoth && valleyProminence >= minProminenceThreshold) {
         if (current <= data[i - 1] && current <= data[i + 1]) {
-          // Prevent marking minima if too close to maxima
           const distanceToMaxima = i - lastMaximaIdx;
           const amplitudeFromMaxima =
             lastMaximaValue !== null ? lastMaximaValue - current : Infinity;
 
-          // Require EITHER sufficient distance OR sufficient amplitude change
           const sufficientSeparation = distanceToMaxima >= minSeparation;
           const sufficientAmplitude = amplitudeFromMaxima >= minDifference;
 
           if (sufficientSeparation || sufficientAmplitude) {
-            if (!timeseries[i].extrema) timeseries[i].extrema = {};
-            if (!timeseries[i].extrema.isMinima)
-              timeseries[i].extrema.isMinima = [];
-            timeseries[i].extrema.isMinima.push(property);
-            lastMinimaIdx = i;
-            lastMinimaValue = current;
+            markMinima(i);
           }
         }
+      }
+    }
+
+    // Check last point
+    if (n >= 2) {
+      const lastIdx = n - 1;
+      const isEndMaxima = data
+        .slice(Math.max(0, lastIdx - windowSize), lastIdx)
+        .every((v) => data[lastIdx] > v);
+      const prominence =
+        data[lastIdx] -
+        Math.min(...data.slice(Math.max(0, lastIdx - windowSize), lastIdx));
+
+      const distanceToMinima = lastIdx - lastMinimaIdx;
+      const amplitudeFromMinima =
+        lastMinimaValue !== null ? data[lastIdx] - lastMinimaValue : Infinity;
+
+      if (
+        isEndMaxima &&
+        prominence >= baseProminence &&
+        (distanceToMinima >= minSeparation ||
+          amplitudeFromMinima >= minDifference)
+      ) {
+        markMaxima(lastIdx);
+      }
+
+      const isEndMinima = data
+        .slice(Math.max(0, lastIdx - windowSize), lastIdx)
+        .every((v) => data[lastIdx] < v);
+      const prominenceMin =
+        Math.max(...data.slice(Math.max(0, lastIdx - windowSize), lastIdx)) -
+        data[lastIdx];
+
+      const distanceToMaxima = lastIdx - lastMaximaIdx;
+      const amplitudeFromMaxima =
+        lastMaximaValue !== null ? lastMaximaValue - data[lastIdx] : Infinity;
+
+      if (
+        isEndMinima &&
+        prominenceMin >= baseProminence &&
+        (distanceToMaxima >= minSeparation ||
+          amplitudeFromMaxima >= minDifference)
+      ) {
+        markMinima(lastIdx);
       }
     }
 
