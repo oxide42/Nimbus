@@ -48,7 +48,7 @@ class WeatherService {
 
     // Apply ema on data structure
     data.forEach((item, index) => {
-      //item.temperature = temp_ema[index];
+      item.temperature = temp_ema[index];
       item.windSpeed = wind_ema[index];
       item.windGusts = windgusts_ema[index];
     });
@@ -139,7 +139,7 @@ class WeatherService {
       );
 
       // Smooth data
-      this.#smooth(correctedData);
+      //this.#smooth(correctedData);
 
       // Mark extrema points for temperature and wind
       processedData = this.extremaService.markExtrema(correctedData, [
