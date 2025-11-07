@@ -21,6 +21,7 @@
     "windUnit": "Wind Speed Unit",
     "showWindGusts": "Show Wind Gusts",
     "showCurrentWeather": "Show Current Weather",
+    "showApparentTemperature": "Show Apparent Temperature",
     "locationCacheMinutes": "Location Cache Duration (minutes)",
     "language": "Language",
     "yes": "Yes",

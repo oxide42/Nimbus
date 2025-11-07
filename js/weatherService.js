@@ -10,6 +10,7 @@ class WeatherService {
     this.locationService = new LocationService(settings);
     this.sunService = new SunService();
     this.extremaService = new ExtremaService(settings);
+    this.temperatureService = new TemperatureService();
   }
 
   setProvider(providerName) {
@@ -117,6 +118,58 @@ class WeatherService {
     return data;
   }
 
+  #calculateApparentTemperature(weatherData, latitude, longitude) {
+    if (!this.settings.getShowApparentTemperature()) {
+      return weatherData;
+    }
+
+    return weatherData.map((dataPoint) => {
+      // We need to convert temperature back to Celsius for the calculation
+      // since the formula expects Celsius
+      let tempCelsius = dataPoint.temperature;
+      if (this.settings.settings.tempUnit === "fahrenheit") {
+        tempCelsius = ((dataPoint.temperature - 32) * 5) / 9;
+      }
+
+      // Convert wind speed back to m/s for the calculation
+      let windMs = dataPoint.windSpeed;
+      switch (this.settings.settings.windUnit) {
+        case "kmh":
+          windMs = dataPoint.windSpeed / 3.6;
+          break;
+        case "mph":
+          windMs = dataPoint.windSpeed / 2.237;
+          break;
+        case "knots":
+          windMs = dataPoint.windSpeed / 1.944;
+          break;
+      }
+
+      // Calculate solar radiation (Q) based on sun hours
+      // Sun hours is a percentage (0-100), we'll use it as a proxy for solar radiation
+      // Typical solar radiation ranges from 0 (night) to ~1000 W/m² (full sun)
+      const Q = (dataPoint.sunHours / 100) * 1000;
+
+      // Calculate apparent temperature using the service
+      const apparentTempCelsius =
+        this.temperatureService.getApparentTemperature(
+          dataPoint.humidity || 50, // Use 50% as default if humidity is missing
+          tempCelsius,
+          windMs,
+          Q,
+        );
+
+      // Convert back to the user's preferred unit
+      const apparentTemp =
+        this.settings.convertTemperature(apparentTempCelsius);
+
+      return {
+        ...dataPoint,
+        temperature: apparentTemp,
+      };
+    });
+  }
+
   async fetchWeatherData(forecastType) {
     try {
       const position = await this.locationService.getCurrentPosition();
@@ -132,8 +185,15 @@ class WeatherService {
       let processedData = provider.processWeatherData(result);
 
       // Postprocess sun hours to correct for nighttime
-      const correctedData = this.#correctSunHours(
+      let correctedData = this.#correctSunHours(
         processedData,
+        latitude,
+        longitude,
+      );
+
+      // Apply apparent temperature if setting is enabled
+      correctedData = this.#calculateApparentTemperature(
+        correctedData,
         latitude,
         longitude,
       );
@@ -142,18 +202,18 @@ class WeatherService {
       //this.#smooth(correctedData);
 
       // Mark extrema points for temperature and wind
-      processedData = this.extremaService.markExtrema(correctedData, [
+      correctedData = this.extremaService.markExtrema(correctedData, [
         "temperature",
         "windSpeed",
         "windGusts",
       ]);
 
       // Group precipitation periods
-      processedData = this.#groupPrecipitation(processedData);
+      correctedData = this.#groupPrecipitation(correctedData);
 
       return {
-        data: processedData,
-        alerts: result.alerts,
+        data: correctedData,
+        alerts: processedData.alerts,
       };
     } catch (error) {
       const errorText = `Failed to fetch weather data: ${error.message}`;

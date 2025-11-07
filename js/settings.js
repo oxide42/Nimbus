@@ -8,6 +8,7 @@ class Settings {
       windUnit: "ms",
       showWindGusts: false,
       showCurrentWeather: true,
+      showApparentTemperature: false,
       locationCacheMinutes: 15,
       owmForecastType: "3-hourly",
       language: null, // null means auto-detect from browser
@@ -31,6 +32,7 @@ class Settings {
     this.settings.windUnit = windUnit.value;
     this.settings.showWindGusts = showWindGusts.value;
     this.settings.showCurrentWeather = showCurrentWeather.value;
+    this.settings.showApparentTemperature = showApparentTemperature.value;
     this.settings.locationCacheMinutes =
       parseInt(locationCacheMinutes.value) || 30;
     this.settings.owmForecastType = owmForecastType.value;
@@ -56,6 +58,10 @@ class Settings {
     return this.settings.showCurrentWeather != "false";
   }
 
+  getShowApparentTemperature() {
+    return this.settings.showApparentTemperature == "true";
+  }
+
   async initializeUI(i18n) {
     this.i18n = i18n;
 
@@ -67,6 +73,9 @@ class Settings {
     const windUnit = document.getElementById("windUnit");
     const showWindGusts = document.getElementById("showWindGusts");
     const showCurrentWeather = document.getElementById("showCurrentWeather");
+    const showApparentTemperature = document.getElementById(
+      "showApparentTemperature",
+    );
     const locationCacheMinutes = document.getElementById(
       "locationCacheMinutes",
     );
@@ -79,6 +88,7 @@ class Settings {
     windUnit.value = this.settings.windUnit;
     showWindGusts.value = this.settings.showWindGusts;
     showCurrentWeather.value = this.settings.showCurrentWeather;
+    showApparentTemperature.value = this.settings.showApparentTemperature;
     locationCacheMinutes.value = this.settings.locationCacheMinutes;
     owmForecastType.value = this.settings.owmForecastType;
     languageSelect.value = this.settings.language || i18n.getCurrentLanguage();
@@ -127,6 +137,10 @@ class Settings {
     this.updateLabel("showWindGusts", t("settings.showWindGusts"));
     this.updateLabel("showCurrentWeather", t("settings.showCurrentWeather"));
     this.updateLabel(
+      "showApparentTemperature",
+      t("settings.showApparentTemperature"),
+    );
+    this.updateLabel(
       "locationCacheMinutes",
       t("settings.locationCacheMinutes"),
     );
@@ -171,6 +185,11 @@ class Settings {
     });
 
     this.updateSelectOptions("showCurrentWeather", {
+      true: t("settings.yes"),
+      false: t("settings.no"),
+    });
+
+    this.updateSelectOptions("showApparentTemperature", {
       true: t("settings.yes"),
       false: t("settings.no"),
     });
