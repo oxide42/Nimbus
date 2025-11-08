@@ -11,6 +11,7 @@ class WeatherService {
     this.sunService = new SunService();
     this.extremaService = new ExtremaService(settings);
     this.temperatureService = new TemperatureService();
+    this.convertService = new ConvertService();
   }
 
   setProvider(providerName) {
@@ -26,33 +27,6 @@ class WeatherService {
       throw new Error(`Unknown weather provider: ${this.currentProvider}`);
     }
     return new ProviderClass(this.settings);
-  }
-
-  #ema(data, property, ema_length = 3) {
-    const alpha = 2 / (ema_length + 1); // 0.5
-    const emaValues = [];
-
-    let ema = data[0][property]; // seed with first value
-    emaValues.push(ema);
-
-    for (let i = 1; i < data.length; i++) {
-      ema = alpha * data[i][property] + (1 - alpha) * ema;
-      emaValues.push(ema);
-    }
-    return emaValues;
-  }
-
-  #smooth(data) {
-    //const temp_ema = this.#ema(data, "temperature", 3);
-    const wind_ema = this.#ema(data, "windSpeed", 4);
-    const windgusts_ema = this.#ema(data, "windGusts", 4);
-
-    // Apply ema on data structure
-    data.forEach((item, index) => {
-      item.temperature = temp_ema[index];
-      item.windSpeed = wind_ema[index];
-      item.windGusts = windgusts_ema[index];
-    });
   }
 
   /**
@@ -124,48 +98,23 @@ class WeatherService {
     }
 
     return weatherData.map((dataPoint) => {
-      // We need to convert temperature back to Celsius for the calculation
-      // since the formula expects Celsius
-      let tempCelsius = dataPoint.temperature;
-      if (this.settings.settings.tempUnit === "fahrenheit") {
-        tempCelsius = ((dataPoint.temperature - 32) * 5) / 9;
-      }
-
-      // Convert wind speed back to m/s for the calculation
-      let windMs = dataPoint.windSpeed;
-      switch (this.settings.settings.windUnit) {
-        case "kmh":
-          windMs = dataPoint.windSpeed / 3.6;
-          break;
-        case "mph":
-          windMs = dataPoint.windSpeed / 2.237;
-          break;
-        case "knots":
-          windMs = dataPoint.windSpeed / 1.944;
-          break;
-      }
-
-      // Calculate solar radiation (Q) based on sun hours
-      // Sun hours is a percentage (0-100), we'll use it as a proxy for solar radiation
-      // Typical solar radiation ranges from 0 (night) to ~1000 W/m² (full sun)
-      const Q = (dataPoint.sunHours / 100) * 1000;
-
-      // Calculate apparent temperature using the service
-      const apparentTempCelsius =
-        this.temperatureService.getApparentTemperature(
-          dataPoint.humidity || 50, // Use 50% as default if humidity is missing
-          tempCelsius,
-          windMs,
-          Q,
-        );
-
-      // Convert back to the user's preferred unit
-      const apparentTemp =
-        this.settings.convertTemperature(apparentTempCelsius);
+      const apparentTemp = this.temperatureService.Calculate(
+        ConvertService.toUtcTime(dataPoint.time),
+        latitude,
+        longitude,
+        dataPoint.humidity || 50, // Use 50% as default if humidity is missing
+        dataPoint.clouds,
+        dataPoint.temperature,
+        dataPoint.windSpeed,
+      );
 
       return {
         ...dataPoint,
-        temperature: apparentTemp,
+        apparentTemperature: {
+          avg: apparentTemp.temp.avg,
+          min: apparentTemp.temp.min,
+          max: apparentTemp.temp.max,
+        },
       };
     });
   }
@@ -197,9 +146,6 @@ class WeatherService {
         latitude,
         longitude,
       );
-
-      // Smooth data
-      //this.#smooth(correctedData);
 
       // Mark extrema points for temperature and wind
       correctedData = this.extremaService.markExtrema(correctedData, [

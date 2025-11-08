@@ -229,26 +229,6 @@ class Settings {
     }
   }
 
-  convertTemperature(celsius) {
-    if (this.settings.tempUnit === "fahrenheit") {
-      return (celsius * 9) / 5 + 32;
-    }
-    return celsius;
-  }
-
-  convertWindSpeed(ms) {
-    switch (this.settings.windUnit) {
-      case "kmh":
-        return ms * 3.6;
-      case "mph":
-        return ms * 2.237;
-      case "knots":
-        return ms * 1.944;
-      default:
-        return ms;
-    }
-  }
-
   getTemperatureUnit() {
     return this.settings.tempUnit === "fahrenheit" ? "°F" : "°C";
   }
