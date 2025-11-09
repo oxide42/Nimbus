@@ -302,6 +302,32 @@ body.dark-mode .loading {
     position: relative;
 }
 
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.settings-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.settings-column h3 {
+    font-size: 18px;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #3498db;
+}
+
+body.dark-mode .settings-column h3 {
+    color: #e0e0e0;
+    border-bottom-color: #4a6fa5;
+}
+
 .setting-group {
     margin-bottom: 20px;
 }
@@ -319,6 +345,24 @@ body.dark-mode .loading {
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 16px;
+}
+
+@media (max-width: 1024px) {
+    .settings-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 500px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .settings-column h3 {
+        font-size: 16px;
+    }
 }
 
 .save-btn {

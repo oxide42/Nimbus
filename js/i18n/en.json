@@ -11,6 +11,10 @@
   },
   "settings": {
     "title": "Settings",
+    "sectionWeatherProvider": "Weather Provider",
+    "sectionUnits": "Units",
+    "sectionDisplayOptions": "Display Options",
+    "sectionPreferences": "Preferences",
     "weatherProvider": "Weather Provider",
     "owmApiToken": "OpenWeatherMap API Token",
     "owmApiTokenPlaceholder": "Enter your OpenWeatherMap API token",
@@ -21,6 +25,7 @@
     "windUnit": "Wind Speed Unit",
     "showWindGusts": "Show Wind Gusts",
     "showCurrentWeather": "Show Current Weather",
+    "showApparentTemperature": "Show Apparent Temperature",
     "locationCacheMinutes": "Location Cache Duration (minutes)",
     "language": "Language",
     "darkMode": "Dark Mode",

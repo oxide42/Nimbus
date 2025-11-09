@@ -37,107 +37,143 @@
             <div id="settingsPage" class="page">
                 <h2>Settings</h2>
 
-                <div class="setting-group">
-                    <label for="weatherProvider">Weather Provider:</label>
-                    <select id="weatherProvider">
-                        <option value="openweathermap">OpenWeatherMap</option>
-                        <option value="openmeteo">Open-Meteo</option>
-                        <option value="dmi">
-                            DMI (Danmarks Meteorologiske Institut)
-                        </option>
-                    </select>
-                </div>
+                <div class="settings-grid">
+                    <div class="settings-column">
+                        <h3>Weather Provider</h3>
 
-                <div class="setting-group" id="owmGroup">
-                    <label for="owmApiToken">OpenWeatherMap API Token:</label>
-                    <input
-                        type="text"
-                        id="owmApiToken"
-                        placeholder="Enter your OpenWeatherMap API token"
-                    />
-                    <label for="owmForecastType"
-                        >OpenWeatherMap Forecast Type:</label
-                    >
-                    <select id="owmForecastType">
-                        <option value="hourly">Hourly</option>
-                        <option value="3-hourly">3-Hourly</option>
-                        <option value="daily">Daily</option>
-                    </select>
-                </div>
+                        <div class="setting-group">
+                            <label for="weatherProvider"
+                                >Weather Provider:</label
+                            >
+                            <select id="weatherProvider">
+                                <option value="openweathermap">
+                                    OpenWeatherMap
+                                </option>
+                                <option value="openmeteo">Open-Meteo</option>
+                                <option value="dmi">
+                                    DMI (Danmarks Meteorologiske Institut)
+                                </option>
+                            </select>
+                        </div>
 
-                <div class="setting-group" id="dmiGroup">
-                    <label for="dmiApiToken">DMI API Token:</label>
-                    <input
-                        type="text"
-                        id="dmiApiToken"
-                        placeholder="Enter your DMI API token"
-                    />
-                </div>
+                        <div class="setting-group" id="owmGroup">
+                            <label for="owmApiToken"
+                                >OpenWeatherMap API Token:</label
+                            >
+                            <input
+                                type="text"
+                                id="owmApiToken"
+                                placeholder="Enter your OpenWeatherMap API token"
+                            />
+                            <label for="owmForecastType"
+                                >OpenWeatherMap Forecast Type:</label
+                            >
+                            <select id="owmForecastType">
+                                <option value="hourly">Hourly</option>
+                                <option value="3-hourly">3-Hourly</option>
+                                <option value="daily">Daily</option>
+                            </select>
+                        </div>
 
-                <div class="setting-group">
-                    <label for="tempUnit">Temperature Unit:</label>
-                    <select id="tempUnit">
-                        <option value="celsius">Celsius (°C)</option>
-                        <option value="fahrenheit">Fahrenheit (°F)</option>
-                    </select>
-                </div>
+                        <div class="setting-group" id="dmiGroup">
+                            <label for="dmiApiToken">DMI API Token:</label>
+                            <input
+                                type="text"
+                                id="dmiApiToken"
+                                placeholder="Enter your DMI API token"
+                            />
+                        </div>
+                    </div>
 
-                <div class="setting-group">
-                    <label for="windUnit">Wind Speed Unit:</label>
-                    <select id="windUnit">
-                        <option value="ms">m/s</option>
-                        <option value="kmh">km/h</option>
-                        <option value="mph">mph</option>
-                        <option value="knots">knots</option>
-                    </select>
-                </div>
+                    <div class="settings-column">
+                        <h3>Units</h3>
 
-                <div class="setting-group">
-                    <label for="showWindGusts">Show Wind Gusts:</label>
-                    <select id="showWindGusts">
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                    </select>
-                </div>
+                        <div class="setting-group">
+                            <label for="tempUnit">Temperature Unit:</label>
+                            <select id="tempUnit">
+                                <option value="celsius">Celsius (°C)</option>
+                                <option value="fahrenheit">
+                                    Fahrenheit (°F)
+                                </option>
+                            </select>
+                        </div>
 
-                <div class="setting-group">
-                    <label for="showCurrentWeather"
-                        >Show Current Weather:</label
-                    >
-                    <select id="showCurrentWeather">
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                    </select>
-                </div>
+                        <div class="setting-group">
+                            <label for="windUnit">Wind Speed Unit:</label>
+                            <select id="windUnit">
+                                <option value="ms">m/s</option>
+                                <option value="kmh">km/h</option>
+                                <option value="mph">mph</option>
+                                <option value="knots">knots</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <div class="setting-group">
-                    <label for="locationCacheMinutes"
-                        >Location Cache Duration (minutes):</label
-                    >
-                    <input
-                        type="number"
-                        id="locationCacheMinutes"
-                        min="1"
-                        max="1440"
-                        value="30"
-                        placeholder="30"
-                    />
-                </div>
+                    <div class="settings-column">
+                        <h3>Display Options</h3>
 
-                <div class="setting-group">
-                    <label for="languageSelect">Language:</label>
-                    <select id="languageSelect">
-                        <option value="en">English</option>
-                        <option value="da">Dansk</option>
-                    </select>
-                </div>
+                        <div class="setting-group">
+                            <label for="showWindGusts">Show Wind Gusts:</label>
+                            <select id="showWindGusts">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
 
-                <div class="setting-group">
-                    <label for="darkMode">Dark Mode:</label>
-                    <select id="darkMode">
-                        <option value="false">Off</option>
-                        <option value="true">On</option>
-                    </select>
+                        <div class="setting-group">
+                            <label for="showCurrentWeather"
+                                >Show Current Weather:</label
+                            >
+                            <select id="showCurrentWeather">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-group">
+                            <label for="showApparentTemperature"
+                                >Show Apparent Temperature:</label
+                            >
+                            <select id="showApparentTemperature">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-group">
+                            <label for="darkMode">Dark Mode:</label>
+                            <select id="darkMode">
+                                <option value="false">Off</option>
+                                <option value="true">On</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-column">
+                        <h3>Preferences</h3>
+
+                        <div class="setting-group">
+                            <label for="locationCacheMinutes"
+                                >Location Cache Duration (minutes):</label
+                            >
+                            <input
+                                type="number"
+                                id="locationCacheMinutes"
+                                min="1"
+                                max="1440"
+                                value="30"
+                                placeholder="30"
+                            />
+                        </div>
+
+                        <div class="setting-group">
+                            <label for="languageSelect">Language:</label>
+                            <select id="languageSelect">
+                                <option value="en">English</option>
+                                <option value="da">Dansk</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

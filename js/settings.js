@@ -135,6 +135,15 @@ class Settings {
     document.querySelector("#settingsPage h2").textContent =
       t("settings.title");
 
+    // Update section headers
+    const sections = document.querySelectorAll(".settings-column h3");
+    if (sections.length >= 4) {
+      sections[0].textContent = t("settings.sectionWeatherProvider");
+      sections[1].textContent = t("settings.sectionUnits");
+      sections[2].textContent = t("settings.sectionDisplayOptions");
+      sections[3].textContent = t("settings.sectionPreferences");
+    }
+
     // Update labels
     this.updateLabel("weatherProvider", t("settings.weatherProvider"));
     this.updateLabel("owmApiToken", t("settings.owmApiToken"));
@@ -144,6 +153,10 @@ class Settings {
     this.updateLabel("windUnit", t("settings.windUnit"));
     this.updateLabel("showWindGusts", t("settings.showWindGusts"));
     this.updateLabel("showCurrentWeather", t("settings.showCurrentWeather"));
+    this.updateLabel(
+      "showApparentTemperature",
+      t("settings.showApparentTemperature"),
+    );
     this.updateLabel(
       "locationCacheMinutes",
       t("settings.locationCacheMinutes"),

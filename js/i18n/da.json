@@ -11,6 +11,10 @@
   },
   "settings": {
     "title": "Indstillinger",
+    "sectionWeatherProvider": "Vejrudbyder",
+    "sectionUnits": "Enheder",
+    "sectionDisplayOptions": "Visningsmuligheder",
+    "sectionPreferences": "Præferencer",
     "weatherProvider": "Vejrudbyder",
     "owmApiToken": "OpenWeatherMap API-nøgle",
     "owmApiTokenPlaceholder": "Indtast din OpenWeatherMap API-nøgle",
@@ -21,6 +25,7 @@
     "windUnit": "Enhed for vind",
     "showWindGusts": "Vis Vindstød",
     "showCurrentWeather": "Vis Nuværende Vejr",
+    "showApparentTemperature": "Vis Føles Som Temperatur",
     "locationCacheMinutes": "Cache Varighed (minutter)",
     "language": "Sprog",
     "darkMode": "Mørk Tilstand",
