@@ -313,11 +313,13 @@ function update() {
   }
 
   prepareChartData(processedData) {
-    let minColor = "#FFFFFF";
+    let precipMin = "#FFFFFF";
+    let windMin = "#FFFFFF";
 
     if (this.settings.getDarkMode()) {
       let chartElement = document.getElementById("chartContainer");
-      minColor = window.getComputedStyle(chartElement).backgroundColor;
+      precipMin = window.getComputedStyle(chartElement).backgroundColor;
+      windMin = "#808080";
     }
 
     return processedData.map((item) => ({
@@ -344,13 +346,13 @@ function update() {
           item.temperature > 0 ? am5.color("#ff0000") : am5.color("#0000ff"),
       },
       windStrokeSettings: {
-        stroke: this.gradientColor(item.windSpeed, 0, 24, "#808080", "#ff0000"),
+        stroke: this.gradientColor(item.windSpeed, 0, 24, windMin, "#ff0000"),
       },
       precipFillSettings: {
-        stroke: item.precipitation < 0.01 ? minColor : "#afafaf",
+        stroke: item.precipitation < 0.01 ? precipMin : "#afafaf",
         fill:
           item.precipitation < 0.01
-            ? minColor
+            ? precipMin
             : item.precipitation < 10
               ? this.gradientColor(
                   item.precipitation,
