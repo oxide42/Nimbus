@@ -1,13 +1,13 @@
 class Cache {
-  static #instance = null;
+  static _instance = null;
 
   constructor() {
     // Return existing instance if it exists
-    if (Cache.#instance) {
-      return Cache.#instance;
+    if (Cache._instance) {
+      return Cache._instance;
     }
     // Store the instance
-    Cache.#instance = this;
+    Cache._instance = this;
   }
 
   /**
@@ -15,10 +15,10 @@ class Cache {
    * @returns {Cache} The Cache instance
    */
   static getInstance() {
-    if (!Cache.#instance) {
-      Cache.#instance = new Cache();
+    if (!Cache._instance) {
+      Cache._instance = new Cache();
     }
-    return Cache.#instance;
+    return Cache._instance;
   }
 
   #parse() {
