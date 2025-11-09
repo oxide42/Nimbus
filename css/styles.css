@@ -246,6 +246,24 @@ body.dark-mode .loading {
     overflow: hidden;
 }
 
+#chartContainer {
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: -2px;
+    height: 500px;
+    position: relative;
+    z-index: 1;
+}
+
+#chartContainer2 {
+    height: 100px;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    margin-top: 0;
+    position: relative;
+    z-index: 2;
+}
+
 .chart-legend {
     display: flex;
     justify-content: center;

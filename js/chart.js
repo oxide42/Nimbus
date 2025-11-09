@@ -25,11 +25,16 @@ function update() {
     if (this.chart) {
       this.chart.dispose();
     }
+    if (this.chart2) {
+      this.chart2.dispose();
+    }
 
+    // Create first chart in chartContainer
     const root = am5.Root.new(containerId);
     root.setThemes([am5themes_Animated.new(root)]);
 
-    const chart = root.container.children.push(
+    // First chart (temperature, wind, sun, precipitation)
+    const chart1 = root.container.children.push(
       am5xy.XYChart.new(root, {
         panX: true,
         panY: false,
@@ -40,25 +45,76 @@ function update() {
       }),
     );
 
-    const xAxis = this.createXAxis(root, chart);
-    const yAxis = this.createYAxis(root, chart);
-    const yAxisRight = this.createYAxisRight(root, chart, yAxis);
-    const windAxis = this.createWindAxis(root, chart);
+    const xAxis1 = this.createXAxis(root, chart1);
+    const yAxis1 = this.createYAxis(root, chart1);
+    const yAxisRight1 = this.createYAxisRight(root, chart1, yAxis1);
+    const windAxis = this.createWindAxis(root, chart1);
 
-    const tempSeries = this.createTemperatureSeries(root, chart, xAxis, yAxis);
-    const windSeries = this.createWindSeries(root, chart, xAxis, windAxis);
-    const precipSeries = this.createPrecipitationSeries(
+    const tempSeries = this.createTemperatureSeries(
       root,
-      chart,
-      xAxis,
-      yAxisRight,
+      chart1,
+      xAxis1,
+      yAxis1,
     );
-    const sunSeries = this.createSunSeries(root, chart, xAxis, yAxisRight);
+    const windSeries = this.createWindSeries(root, chart1, xAxis1, windAxis);
+
+    // Create second chart in chartContainer2
+    const root2 = am5.Root.new("chartContainer2");
+    root2.setThemes([am5themes_Animated.new(root2)]);
+
+    // Second chart (additional data visualization)
+    const chart2 = root2.container.children.push(
+      am5xy.XYChart.new(root2, {
+        panX: false,
+        panY: false,
+        wheelX: "none",
+        wheelY: "none",
+        pinchZoomX: false,
+        layout: root2.verticalLayout,
+      }),
+    );
+
+    chart2.zoomOutButton.set("forceHidden", true);
+
+    // Create x-axis for second chart and sync with first chart
+    const xAxis2 = this.createXAxis(root2, chart2);
+
+    // Hide x-axis for chart2
+    xAxis2.get("renderer").labels.template.set("forceHidden", true);
+    xAxis2.get("renderer").grid.template.set("forceHidden", true);
+
+    const yAxis2 = this.createYAxis(root2, chart2);
+    const yAxisRight2 = this.createYAxisRight(root2, chart2, yAxis2);
+
+    // Link the x-axes for synchronized zooming and panning (one-way sync)
+    // Use chart events instead of axis events for better reliability
+    chart1.events.on("wheelended", function () {
+      const start = xAxis1.get("start", 0);
+      const end = xAxis1.get("end", 1);
+      xAxis2.set("start", start);
+      xAxis2.set("end", end);
+    });
+
+    chart1.events.on("panended", function () {
+      const start = xAxis1.get("start", 0);
+      const end = xAxis1.get("end", 1);
+      xAxis2.set("start", start);
+      xAxis2.set("end", end);
+    });
+
+    // Add precipitation and sun series to second chart
+    const precipSeries2 = this.createPrecipitationSeries(
+      root2,
+      chart2,
+      xAxis2,
+      yAxisRight2,
+    );
+    const sunSeries = this.createSunSeries(root2, chart2, xAxis2, yAxisRight2);
 
     const chartData = this.prepareChartData(weatherData);
 
     this.setSeriesData(
-      [tempSeries, precipSeries, windSeries, sunSeries],
+      [tempSeries, windSeries, precipSeries2, sunSeries],
       chartData,
     );
 
@@ -78,18 +134,21 @@ function update() {
       const lastDate = new Date(firstDate.getTime() + delta);
 
       ev.target.get("xAxis").zoomToDates(firstDate, lastDate);
+      xAxis2.zoomToDates(firstDate, lastDate);
     });
 
     this.setupBullets(
       root,
+      root2,
       tempSeries,
       windSeries,
       sunSeries,
-      precipSeries,
+      precipSeries2,
       weatherData,
     );
 
     this.chart = root;
+    this.chart2 = root2;
   }
 
   //
@@ -159,7 +218,7 @@ function update() {
     const newAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
         min: 0,
-        max: 5,
+        max: 1,
         strictMinMax: true,
         autoZoom: false,
         visible: false,
@@ -181,7 +240,7 @@ function update() {
       am5xy.ValueAxis.new(root, {
         min: 0,
         extraMax: 0.4,
-        extraMin: 0.2,
+        extraMin: 0.0,
         visible: false,
         strictMinMax: true,
         autoZoom: false,
@@ -378,10 +437,11 @@ function update() {
 
   setupBullets(
     root,
+    root2,
     tempSeries,
     windSeries,
     sunSeries,
-    precipSeries,
+    precipSeries2,
     processedData,
   ) {
     this.labelPositions = [];
@@ -456,28 +516,28 @@ function update() {
     let windReady = false;
 
     const tryAddBullets = () => {
-      // Sun label
-      const sunContainer = am5.Container.new(root, {});
+      // Sun label (chart 2)
+      const sunContainer = am5.Container.new(root2, {});
       const label = addLabel(sunContainer, "☀", am5.p0, am5.p50, 0, 7);
-      const bulletSprite = am5.Bullet.new(root, {
+      const bulletSprite = am5.Bullet.new(root2, {
         sprite: sunContainer,
       });
       sunSeries.addBullet(sunSeries.dataItems[0], bulletSprite);
 
-      // Precipitation label
-      const precipContainer = am5.Container.new(root, {});
-      const precipLabel = addLabel(
-        precipContainer,
+      // Precipitation label (chart 2)
+      const precipContainer2 = am5.Container.new(root2, {});
+      const precipLabel2 = addLabel(
+        precipContainer2,
         "⛈",
         am5.p0,
         am5.p50,
         0,
         7,
       );
-      const precipBulletSprite = am5.Bullet.new(root, {
-        sprite: precipContainer,
+      const precipBulletSprite2 = am5.Bullet.new(root2, {
+        sprite: precipContainer2,
       });
-      precipSeries.addBullet(precipSeries.dataItems[0], precipBulletSprite);
+      precipSeries2.addBullet(precipSeries2.dataItems[0], precipBulletSprite2);
 
       if (tempReady && windReady) {
         // Add bullets based on extrema property
@@ -511,7 +571,7 @@ function update() {
           }
         });
 
-        // Add precipitation bullets for grouped totals
+        // Add precipitation bullets for grouped totals (chart 2)
         processedData.forEach((dataPoint, index) => {
           if (dataPoint.precipitationGroupTotal) {
             const roundedValue = Math.round(dataPoint.precipitationGroupTotal);
@@ -519,7 +579,7 @@ function update() {
               roundedValue === 0 ? "" : roundedValue + " mm";
             if (formattedValue) {
               addBullet(
-                precipSeries,
+                precipSeries2,
                 index,
                 formattedValue,
                 "precipitation",
@@ -547,6 +607,10 @@ function update() {
     if (this.chart) {
       this.chart.dispose();
       this.chart = null;
+    }
+    if (this.chart2) {
+      this.chart2.dispose();
+      this.chart2 = null;
     }
   }
 }
