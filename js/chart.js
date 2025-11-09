@@ -137,15 +137,11 @@ function update() {
       xAxis2.zoomToDates(firstDate, lastDate);
     });
 
-    this.setupBullets(
-      root,
-      root2,
-      tempSeries,
-      windSeries,
-      sunSeries,
-      precipSeries2,
-      weatherData,
-    );
+    // Setup bullets for each series
+    this.setupBullets(root, tempSeries, weatherData, "temperature");
+    this.setupBullets(root, windSeries, weatherData, "wind");
+    this.setupBullets(root2, sunSeries, weatherData, "sun");
+    this.setupBullets(root2, precipSeries2, weatherData, "precipitation");
 
     this.chart = root;
     this.chart2 = root2;
@@ -240,7 +236,6 @@ function update() {
       am5xy.ValueAxis.new(root, {
         min: 0,
         extraMax: 0.4,
-        extraMin: 0.0,
         visible: false,
         strictMinMax: true,
         autoZoom: false,
@@ -435,17 +430,11 @@ function update() {
     series.forEach((s) => s.data.setAll(chartData));
   }
 
-  setupBullets(
-    root,
-    root2,
-    tempSeries,
-    windSeries,
-    sunSeries,
-    precipSeries2,
-    processedData,
-  ) {
-    this.labelPositions = [];
-    this.visibleLabels = [];
+  setupBullets(root, series, processedData, seriesType) {
+    if (!this.labelPositions) {
+      this.labelPositions = [];
+      this.visibleLabels = [];
+    }
 
     const addLabel = (container, text, centerX, centerY, dx, dy) => {
       const label = container.children.push(
@@ -486,9 +475,6 @@ function update() {
 
         var label = addLabel(bullet, value, centerX, centerY, 10, 0);
 
-        this.labelPositions.push(label);
-        this.visibleLabels.push(label);
-
         const bulletSprite = am5.Bullet.new(root, {
           sprite: bullet,
         });
@@ -511,38 +497,28 @@ function update() {
       }
     };
 
-    // Wait for both series to be ready
-    let tempReady = false;
-    let windReady = false;
+    series.events.once("datavalidated", () => {
+      // Add icon label at the start
+      if (seriesType === "sun") {
+        const container = am5.Container.new(root, {});
+        const label = addLabel(container, "☀", am5.p0, am5.p50, 0, 7);
+        const bulletSprite = am5.Bullet.new(root, {
+          sprite: container,
+        });
+        series.addBullet(series.dataItems[0], bulletSprite);
+      } else if (seriesType === "precipitation") {
+        const container = am5.Container.new(root, {});
+        const label = addLabel(container, "⛈", am5.p0, am5.p50, 0, 7);
+        const bulletSprite = am5.Bullet.new(root, {
+          sprite: container,
+        });
+        series.addBullet(series.dataItems[0], bulletSprite);
+      }
 
-    const tryAddBullets = () => {
-      // Sun label (chart 2)
-      const sunContainer = am5.Container.new(root2, {});
-      const label = addLabel(sunContainer, "☀", am5.p0, am5.p50, 0, 7);
-      const bulletSprite = am5.Bullet.new(root2, {
-        sprite: sunContainer,
-      });
-      sunSeries.addBullet(sunSeries.dataItems[0], bulletSprite);
-
-      // Precipitation label (chart 2)
-      const precipContainer2 = am5.Container.new(root2, {});
-      const precipLabel2 = addLabel(
-        precipContainer2,
-        "⛈",
-        am5.p0,
-        am5.p50,
-        0,
-        7,
-      );
-      const precipBulletSprite2 = am5.Bullet.new(root2, {
-        sprite: precipContainer2,
-      });
-      precipSeries2.addBullet(precipSeries2.dataItems[0], precipBulletSprite2);
-
-      if (tempReady && windReady) {
-        // Add bullets based on extrema property
-        processedData.forEach((dataPoint, index) => {
-          if (dataPoint.extrema) {
+      // Add extrema bullets
+      processedData.forEach((dataPoint, index) => {
+        if (dataPoint.extrema) {
+          if (seriesType === "temperature") {
             // Add temperature bullets
             if (
               dataPoint.extrema.isMinima?.includes("temperature") ||
@@ -550,9 +526,9 @@ function update() {
             ) {
               const roundedValue = Math.round(dataPoint.temperature);
               const formattedValue = roundedValue + "°";
-              addBullet(tempSeries, index, formattedValue, "temperature");
+              addBullet(series, index, formattedValue, "temperature");
             }
-
+          } else if (seriesType === "wind") {
             // Add wind bullets
             let windField = "windSpeed";
             if (this.settings.getShowWindGusts()) {
@@ -566,40 +542,30 @@ function update() {
               const roundedValue = Math.round(dataPoint[windField]);
               const formattedValue =
                 roundedValue + " " + this.settings.getWindSpeedUnit();
-              addBullet(windSeries, index, formattedValue, "wind");
+              addBullet(series, index, formattedValue, "wind");
             }
           }
-        });
+        }
 
-        // Add precipitation bullets for grouped totals (chart 2)
-        processedData.forEach((dataPoint, index) => {
-          if (dataPoint.precipitationGroupTotal) {
-            const roundedValue = Math.round(dataPoint.precipitationGroupTotal);
-            const formattedValue =
-              roundedValue === 0 ? "" : roundedValue + " mm";
-            if (formattedValue) {
-              addBullet(
-                precipSeries2,
-                index,
-                formattedValue,
-                "precipitation",
-                am5.p50,
-                am5.p0,
-              );
-            }
+        // Add precipitation group totals
+        if (
+          seriesType === "precipitation" &&
+          dataPoint.precipitationGroupTotal
+        ) {
+          const roundedValue = Math.round(dataPoint.precipitationGroupTotal);
+          const formattedValue = roundedValue === 0 ? "" : roundedValue + " mm";
+          if (formattedValue) {
+            addBullet(
+              series,
+              index,
+              formattedValue,
+              "precipitation",
+              am5.p50,
+              am5.p0,
+            );
           }
-        });
-      }
-    };
-
-    tempSeries.events.once("datavalidated", () => {
-      tempReady = true;
-      tryAddBullets();
-    });
-
-    windSeries.events.once("datavalidated", () => {
-      windReady = true;
-      tryAddBullets();
+        }
+      });
     });
   }
 
