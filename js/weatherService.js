@@ -10,6 +10,8 @@ class WeatherService {
     this.locationService = new LocationService(settings);
     this.sunService = new SunService();
     this.extremaService = new ExtremaService(settings);
+    // Use localStorage for weather data cache (cookies are too small)
+    this.cachePrefix = "nimbus-weather-cache-";
   }
 
   setProvider(providerName) {
@@ -121,6 +123,37 @@ class WeatherService {
     try {
       const position = await this.locationService.getCurrentPosition();
       const { latitude, longitude } = position.coords;
+
+      // Check cache first
+      const cacheKey = `${this.cachePrefix}${this.currentProvider}-${latitude.toFixed(2)}-${longitude.toFixed(2)}`;
+      console.log("Cache key:", cacheKey);
+
+      const cachedItem = localStorage.getItem(cacheKey);
+      if (cachedItem) {
+        try {
+          const { data, expiry } = JSON.parse(cachedItem);
+          if (expiry > Date.now()) {
+            console.log("Using cached weather data");
+            // Reconstruct Date objects
+            if (data.data && Array.isArray(data.data)) {
+              data.data = data.data.map((item) => ({
+                ...item,
+                time: new Date(item.time),
+              }));
+            }
+            return data;
+          } else {
+            console.log("Cache expired, removing");
+            localStorage.removeItem(cacheKey);
+          }
+        } catch (e) {
+          console.error("Failed to parse cached data:", e);
+          localStorage.removeItem(cacheKey);
+        }
+      }
+
+      console.log("Fetching fresh weather data from provider");
+
       const provider = this.getProvider();
 
       const result = await provider.fetchWeatherData(
@@ -151,10 +184,31 @@ class WeatherService {
       // Group precipitation periods
       processedData = this.#groupPrecipitation(processedData);
 
-      return {
+      const finalResult = {
         data: processedData,
         alerts: result.alerts,
       };
+
+      // Cache the processed result
+      const expiryTime =
+        Date.now() + this.settings.settings.locationCacheMinutes * 60 * 1000;
+      const cacheData = {
+        data: finalResult,
+        expiry: expiryTime,
+      };
+
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        console.log(
+          "Cached weather data for",
+          this.settings.settings.locationCacheMinutes,
+          "minutes",
+        );
+      } catch (e) {
+        console.error("Failed to cache weather data:", e);
+      }
+
+      return finalResult;
     } catch (error) {
       const errorText = `Failed to fetch weather data: ${error.message}`;
       console.error(error.stack);

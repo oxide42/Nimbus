@@ -1,10 +1,5 @@
 class OpenMeteoProvider extends Provider {
   async fetchWeatherData(latitude, longitude, forecastType) {
-    const cachedResponce = this.cookieCache.get("provider-openmeteo-response");
-    if (cachedResponce) {
-      return this.processWeatherData(cachedResponce, forecastType);
-    }
-
     try {
       const headers = {
         Accept: "application/json",
@@ -35,12 +30,6 @@ class OpenMeteoProvider extends Provider {
       }
 
       const data = await response.json();
-
-      this.cookieCache.set(
-        "provider-openmeteo-response",
-        data,
-        this.settings.settings.locationCacheMinutes,
-      );
 
       return data;
     } catch (error) {

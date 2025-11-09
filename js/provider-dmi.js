@@ -7,11 +7,6 @@ class DmiProvider extends Provider {
       );
     }
 
-    const cachedResponce = this.cookieCache.get("provider-dmi-response");
-    if (cachedResponce) {
-      return this.processWeatherData(cachedResponce, forecastType);
-    }
-
     let endpoint;
     let configuration =
       "wind-speed,temperature-2m,wind-dir-10m,cloud-transmittance,total-precipitation";
@@ -31,12 +26,6 @@ class DmiProvider extends Provider {
       }
 
       const data = await response.json();
-
-      this.cookieCache.set(
-        "provider-dmi-response",
-        data,
-        this.settings.settings.locationCacheMinutes,
-      );
 
       return data;
     } catch (error) {

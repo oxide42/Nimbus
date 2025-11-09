@@ -6,11 +6,6 @@ class OpenWeatherMapProvider extends Provider {
       );
     }
 
-    const cachedResponce = this.cookieCache.get("provider-own-response");
-    if (cachedResponce) {
-      return this.processWeatherData(cachedResponce, forecastType);
-    }
-
     let exclude;
     let endpoint;
     switch (forecastType) {
@@ -33,12 +28,6 @@ class OpenWeatherMapProvider extends Provider {
     }
 
     const data = await response.json();
-
-    this.cookieCache.set(
-      "provider-own-response",
-      data,
-      this.settings.settings.locationCacheMinutes,
-    );
 
     return data;
   }
