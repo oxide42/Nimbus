@@ -11,9 +11,11 @@ class Settings {
       locationCacheMinutes: 15,
       owmForecastType: "3-hourly",
       language: null, // null means auto-detect from browser
+      darkMode: false,
     };
     this.settings = this.loadSettings();
     this.i18n = null;
+    this.applyDarkMode();
   }
 
   loadSettings() {
@@ -35,8 +37,22 @@ class Settings {
       parseInt(locationCacheMinutes.value) || 30;
     this.settings.owmForecastType = owmForecastType.value;
     this.settings.language = languageSelect.value;
+    this.settings.darkMode = darkMode.value;
 
     localStorage.setItem("nimbus-settings", JSON.stringify(this.settings));
+    this.applyDarkMode();
+  }
+
+  getDarkMode() {
+    return this.settings.darkMode === "true" || this.settings.darkMode === true;
+  }
+
+  applyDarkMode() {
+    if (this.getDarkMode()) {
+      document.body.classList.add("dark-mode");
+    } else {
+      document.body.classList.remove("dark-mode");
+    }
   }
 
   getForecastType() {
@@ -71,6 +87,7 @@ class Settings {
       "locationCacheMinutes",
     );
     const languageSelect = document.getElementById("languageSelect");
+    const darkMode = document.getElementById("darkMode");
 
     weatherProvider.value = this.settings.weatherProvider;
     owmApiToken.value = this.settings.owmApiToken;
@@ -82,6 +99,7 @@ class Settings {
     locationCacheMinutes.value = this.settings.locationCacheMinutes;
     owmForecastType.value = this.settings.owmForecastType;
     languageSelect.value = this.settings.language || i18n.getCurrentLanguage();
+    darkMode.value = this.settings.darkMode;
 
     // Update all text with translations
     this.updateUIText();
@@ -131,6 +149,7 @@ class Settings {
       t("settings.locationCacheMinutes"),
     );
     this.updateLabel("languageSelect", t("settings.language"));
+    this.updateLabel("darkMode", t("settings.darkMode"));
 
     // Update placeholders
     document.getElementById("owmApiToken").placeholder = t(
@@ -173,6 +192,11 @@ class Settings {
     this.updateSelectOptions("showCurrentWeather", {
       true: t("settings.yes"),
       false: t("settings.no"),
+    });
+
+    this.updateSelectOptions("darkMode", {
+      true: t("settings.on"),
+      false: t("settings.off"),
     });
   }
 

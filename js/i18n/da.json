@@ -23,8 +23,11 @@
     "showCurrentWeather": "Vis Nuværende Vejr",
     "locationCacheMinutes": "Cache Varighed (minutter)",
     "language": "Sprog",
+    "darkMode": "Mørk Tilstand",
     "yes": "Ja",
-    "no": "Nej"
+    "no": "Nej",
+    "on": "Til",
+    "off": "Fra"
   },
   "providers": {
     "openweathermap": "OpenWeatherMap",

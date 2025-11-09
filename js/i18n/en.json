@@ -23,8 +23,11 @@
     "showCurrentWeather": "Show Current Weather",
     "locationCacheMinutes": "Location Cache Duration (minutes)",
     "language": "Language",
+    "darkMode": "Dark Mode",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "on": "On",
+    "off": "Off"
   },
   "providers": {
     "openweathermap": "OpenWeatherMap",

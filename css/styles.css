@@ -27,13 +27,17 @@ body.dark-mode .navbar {
     background-color: #1f2937;
 }
 
+body.dark-mode .current-weather-container {
+    color: #e0e0e0;
+}
+
 body.dark-mode .chart-container {
-    background-color: #2d2d2d;
+    background-color: #5d5d5d;
     border-color: #404040;
 }
 
 body.dark-mode .chart-legend {
-    background-color: #2d2d2d;
+    background-color: #5d5d5d;
 }
 
 body.dark-mode .setting-group select,
@@ -148,7 +152,7 @@ body.dark-mode .loading {
 
 .current-weather-container {
     padding: 5px 15px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     background: linear-gradient(
         135deg,
         rgba(52, 73, 94, 0.55) 0%,
