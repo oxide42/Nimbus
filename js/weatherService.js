@@ -126,14 +126,12 @@ class WeatherService {
 
       // Check cache first
       const cacheKey = `${this.cachePrefix}${this.currentProvider}-${latitude.toFixed(2)}-${longitude.toFixed(2)}`;
-      console.log("Cache key:", cacheKey);
 
       const cachedItem = localStorage.getItem(cacheKey);
       if (cachedItem) {
         try {
           const { data, expiry } = JSON.parse(cachedItem);
           if (expiry > Date.now()) {
-            console.log("Using cached weather data");
             // Reconstruct Date objects
             if (data.data && Array.isArray(data.data)) {
               data.data = data.data.map((item) => ({
@@ -143,7 +141,6 @@ class WeatherService {
             }
             return data;
           } else {
-            console.log("Cache expired, removing");
             localStorage.removeItem(cacheKey);
           }
         } catch (e) {
@@ -151,8 +148,6 @@ class WeatherService {
           localStorage.removeItem(cacheKey);
         }
       }
-
-      console.log("Fetching fresh weather data from provider");
 
       const provider = this.getProvider();
 
@@ -199,11 +194,6 @@ class WeatherService {
 
       try {
         localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-        console.log(
-          "Cached weather data for",
-          this.settings.settings.locationCacheMinutes,
-          "minutes",
-        );
       } catch (e) {
         console.error("Failed to cache weather data:", e);
       }
