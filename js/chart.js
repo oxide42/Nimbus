@@ -118,23 +118,48 @@ function update() {
       chartData,
     );
 
-    tempSeries.events.once("datavalidated", function (ev) {
-      const firstDate = new Date(tempSeries.dataItems[0].dataContext.time);
-      // lastDate is firstDate plus two days
-      let delta = 2 * 24 * 60 * 60 * 1000;
+    // Wait for both charts' data to be validated before initial zoom
+    let tempValidated = false;
+    let precipValidated = false;
 
-      switch (self.settings.getForecastType()) {
-        case "daily":
-          delta = delta * 24;
-          break;
-        case "3-hourly":
-          delta = delta * 3;
-          break;
+    const doInitialZoom = function () {
+      if (tempValidated && precipValidated) {
+        const firstDate = new Date(tempSeries.dataItems[0].dataContext.time);
+        // lastDate is firstDate plus two days
+        let delta = 2 * 24 * 60 * 60 * 1000;
+
+        switch (self.settings.getForecastType()) {
+          case "daily":
+            delta = delta * 24;
+            break;
+          case "3-hourly":
+            delta = delta * 3;
+            break;
+        }
+        const lastDate = new Date(firstDate.getTime() + delta);
+
+        xAxis1.zoomToDates(firstDate, lastDate);
+
+        // Use requestAnimationFrame to sync after the zoom animation starts
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const start = xAxis1.get("start", 0);
+            const end = xAxis1.get("end", 1);
+            xAxis2.set("start", start);
+            xAxis2.set("end", end);
+          });
+        });
       }
-      const lastDate = new Date(firstDate.getTime() + delta);
+    };
 
-      ev.target.get("xAxis").zoomToDates(firstDate, lastDate);
-      xAxis2.zoomToDates(firstDate, lastDate);
+    tempSeries.events.once("datavalidated", function (ev) {
+      tempValidated = true;
+      doInitialZoom();
+    });
+
+    precipSeries2.events.once("datavalidated", function (ev) {
+      precipValidated = true;
+      doInitialZoom();
     });
 
     // Setup bullets for each series
@@ -199,9 +224,9 @@ function update() {
     return chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
         extraMax: 0.05,
-        extraMin: 0.45,
+        extraMin: 0.25,
         visible: false,
-        autoZoom: false,
+        autoZoom: true,
         strictMinMax: true,
         renderer: am5xy.AxisRendererY.new(root, {
           strokeDasharray: [1, 3],
@@ -216,7 +241,7 @@ function update() {
         min: 0,
         max: 1,
         strictMinMax: true,
-        autoZoom: false,
+        autoZoom: true,
         visible: false,
         renderer: am5xy.AxisRendererY.new(root, {
           opposite: true,
@@ -238,7 +263,7 @@ function update() {
         extraMax: 0.4,
         visible: false,
         strictMinMax: true,
-        autoZoom: false,
+        autoZoom: true,
         renderer: am5xy.AxisRendererY.new(root, {
           visible: false,
         }),
