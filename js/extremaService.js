@@ -1,10 +1,6 @@
 class ExtremaService {
   constructor(settings) {
     this.settings = settings;
-    // Base thresholds - will be adjusted per forecast type
-    this.indexDistanceThreshold = 4;
-    this.valueThresholdPct = 0.2;
-    this.valueThresholdValue = 1;
   }
 
   /**
@@ -29,9 +25,9 @@ class ExtremaService {
     timeseries,
     property,
     windowSize = 5,
-    baseProminence = 3,
-    decayDistance = 12,
-    minSeparation = 6,
+    baseProminence = 2,
+    decayDistance = 6,
+    minSeparation = 3,
     minDifference = 1,
   ) {
     if (timeseries.length < 3) return;
@@ -123,11 +119,25 @@ class ExtremaService {
           const distanceToMinima = i - lastMinimaIdx;
           const amplitudeFromMinima =
             lastMinimaValue !== null ? current - lastMinimaValue : Infinity;
+          const amplitudeFromLastMaxima =
+            lastMaximaValue !== null
+              ? Math.abs(current - lastMaximaValue)
+              : Infinity;
 
           const sufficientSeparation = distanceToMinima >= minSeparation;
           const sufficientAmplitude = amplitudeFromMinima >= minDifference;
+          const differentFromLastMaxima =
+            amplitudeFromLastMaxima >= minDifference;
 
-          if (sufficientSeparation || sufficientAmplitude) {
+          // If there's a minima between last maxima and current point, we can mark this maxima
+          // even if it's similar to the last maxima value
+          const minimaInBetween = lastMinimaIdx > lastMaximaIdx;
+
+          if (
+            sufficientSeparation &&
+            sufficientAmplitude &&
+            (differentFromLastMaxima || minimaInBetween)
+          ) {
             markMaxima(i);
           }
         }
@@ -142,11 +152,25 @@ class ExtremaService {
           const distanceToMaxima = i - lastMaximaIdx;
           const amplitudeFromMaxima =
             lastMaximaValue !== null ? lastMaximaValue - current : Infinity;
+          const amplitudeFromLastMinima =
+            lastMinimaValue !== null
+              ? Math.abs(current - lastMinimaValue)
+              : Infinity;
 
           const sufficientSeparation = distanceToMaxima >= minSeparation;
           const sufficientAmplitude = amplitudeFromMaxima >= minDifference;
+          const differentFromLastMinima =
+            amplitudeFromLastMinima >= minDifference;
 
-          if (sufficientSeparation || sufficientAmplitude) {
+          // If there's a maxima between last minima and current point, we can mark this minima
+          // even if it's similar to the last minima value
+          const maximaInBetween = lastMaximaIdx > lastMinimaIdx;
+
+          if (
+            sufficientSeparation &&
+            sufficientAmplitude &&
+            (differentFromLastMinima || maximaInBetween)
+          ) {
             markMinima(i);
           }
         }
@@ -166,12 +190,18 @@ class ExtremaService {
       const distanceToMinima = lastIdx - lastMinimaIdx;
       const amplitudeFromMinima =
         lastMinimaValue !== null ? data[lastIdx] - lastMinimaValue : Infinity;
+      const amplitudeFromLastMaxima =
+        lastMaximaValue !== null
+          ? Math.abs(data[lastIdx] - lastMaximaValue)
+          : Infinity;
+      const minimaInBetween = lastMinimaIdx > lastMaximaIdx;
 
       if (
         isEndMaxima &&
         prominence >= baseProminence &&
-        (distanceToMinima >= minSeparation ||
-          amplitudeFromMinima >= minDifference)
+        distanceToMinima >= minSeparation &&
+        amplitudeFromMinima >= minDifference &&
+        (amplitudeFromLastMaxima >= minDifference || minimaInBetween)
       ) {
         markMaxima(lastIdx);
       }
@@ -186,25 +216,47 @@ class ExtremaService {
       const distanceToMaxima = lastIdx - lastMaximaIdx;
       const amplitudeFromMaxima =
         lastMaximaValue !== null ? lastMaximaValue - data[lastIdx] : Infinity;
+      const amplitudeFromLastMinima =
+        lastMinimaValue !== null
+          ? Math.abs(data[lastIdx] - lastMinimaValue)
+          : Infinity;
+      const maximaInBetween = lastMaximaIdx > lastMinimaIdx;
 
       if (
         isEndMinima &&
         prominenceMin >= baseProminence &&
-        (distanceToMaxima >= minSeparation ||
-          amplitudeFromMaxima >= minDifference)
+        distanceToMaxima >= minSeparation &&
+        amplitudeFromMaxima >= minDifference &&
+        (amplitudeFromLastMinima >= minDifference || maximaInBetween)
       ) {
         markMinima(lastIdx);
       }
     }
 
-    // Log the first 20 temperatures together with their extrema info
-    console.log(
-      timeseries.slice(0, 20).map((item) =>
-        JSON.stringify({
-          temperature: item.temperature || {},
-          extrema: item.extrema || {},
-        }),
-      ),
-    );
+    // Debug output - show time, rounded value, and extrema marking
+    if (property === "temperature") {
+      const output = timeseries
+        .map((point, idx) => {
+          const time = point.time;
+          const dayOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+            time.getDay()
+          ];
+          const hours = String(time.getHours()).padStart(2, "0");
+          const timeStr = `${dayOfWeek} ${hours}`;
+          const temp = Math.round(point[property]);
+
+          let marking = "";
+          if (point.extrema?.isMaxima?.includes(property)) {
+            marking = " MAX";
+          } else if (point.extrema?.isMinima?.includes(property)) {
+            marking = " MIN";
+          }
+
+          return `${idx.toString().padStart(3)}: ${timeStr} ${temp}°${marking}`;
+        })
+        .join(" | ");
+
+      console.log("Temperature extrema debug:", output);
+    }
   }
 }
