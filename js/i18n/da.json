@@ -7,7 +7,14 @@
   },
   "buttons": {
     "refresh": "Opdater",
-    "settings": "Indstillinger"
+    "settings": "Indstillinger",
+    "zoom": "Zoom"
+  },
+  "zoom": {
+    "next24hours": "Næste 24 timer",
+    "next3days": "Næste 3 dage",
+    "wholePeriod": "Hele perioden",
+    "defaultZoom": "Standard Zoomniveau"
   },
   "settings": {
     "title": "Indstillinger",

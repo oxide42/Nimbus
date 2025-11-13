@@ -25,9 +25,9 @@ class ExtremaService {
     timeseries,
     property,
     windowSize = 5,
-    baseProminence = 2,
+    baseProminence = 3,
     decayDistance = 6,
-    minSeparation = 3,
+    minSeparation = 4,
     minDifference = 1,
   ) {
     if (timeseries.length < 3) return;
@@ -234,6 +234,8 @@ class ExtremaService {
     }
 
     // Debug output - show time, rounded value, and extrema marking
+    //
+    /*
     if (property === "temperature") {
       const output = timeseries
         .map((point, idx) => {
@@ -258,5 +260,6 @@ class ExtremaService {
 
       console.log("Temperature extrema debug:", output);
     }
+    */
   }
 }

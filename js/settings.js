@@ -12,6 +12,7 @@ class Settings {
       owmForecastType: "3-hourly",
       language: null, // null means auto-detect from browser
       darkMode: false,
+      defaultZoom: "3days",
     };
     this.settings = this.loadSettings();
     this.i18n = null;
@@ -38,6 +39,7 @@ class Settings {
     this.settings.owmForecastType = owmForecastType.value;
     this.settings.language = languageSelect.value;
     this.settings.darkMode = darkMode.value;
+    this.settings.defaultZoom = defaultZoom.value;
 
     localStorage.setItem("nimbus-settings", JSON.stringify(this.settings));
     this.applyDarkMode();
@@ -72,6 +74,10 @@ class Settings {
     return this.settings.showCurrentWeather != "false";
   }
 
+  getDefaultZoom() {
+    return this.settings.defaultZoom || "3days";
+  }
+
   async initializeUI(i18n) {
     this.i18n = i18n;
 
@@ -88,6 +94,7 @@ class Settings {
     );
     const languageSelect = document.getElementById("languageSelect");
     const darkMode = document.getElementById("darkMode");
+    const defaultZoom = document.getElementById("defaultZoom");
 
     weatherProvider.value = this.settings.weatherProvider;
     owmApiToken.value = this.settings.owmApiToken;
@@ -100,6 +107,7 @@ class Settings {
     owmForecastType.value = this.settings.owmForecastType;
     languageSelect.value = this.settings.language || i18n.getCurrentLanguage();
     darkMode.value = this.settings.darkMode;
+    defaultZoom.value = this.settings.defaultZoom;
 
     // Update all text with translations
     this.updateUIText();
@@ -163,6 +171,7 @@ class Settings {
     );
     this.updateLabel("languageSelect", t("settings.language"));
     this.updateLabel("darkMode", t("settings.darkMode"));
+    this.updateLabel("defaultZoom", t("zoom.defaultZoom"));
 
     // Update placeholders
     document.getElementById("owmApiToken").placeholder = t(
@@ -210,6 +219,12 @@ class Settings {
     this.updateSelectOptions("darkMode", {
       true: t("settings.on"),
       false: t("settings.off"),
+    });
+
+    this.updateSelectOptions("defaultZoom", {
+      "24hours": t("zoom.next24hours"),
+      "3days": t("zoom.next3days"),
+      whole: t("zoom.wholePeriod"),
     });
   }
 

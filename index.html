@@ -21,6 +21,20 @@
 
                 <div class="nav-buttons">
                     <button id="refreshBtn" class="action-buttons">⟳</button>
+                    <div class="zoom-container">
+                        <button id="zoomBtn" class="action-buttons">🔍</button>
+                        <div id="zoomMenu" class="zoom-menu hidden">
+                            <div class="zoom-menu-item" data-zoom="24hours">
+                                Next 24 hours
+                            </div>
+                            <div class="zoom-menu-item" data-zoom="3days">
+                                Next 3 days
+                            </div>
+                            <div class="zoom-menu-item" data-zoom="whole">
+                                Whole period
+                            </div>
+                        </div>
+                    </div>
                     <button id="settingsBtn" class="action-buttons">⚙️</button>
                 </div>
             </nav>
@@ -172,6 +186,15 @@
                             <select id="languageSelect">
                                 <option value="en">English</option>
                                 <option value="da">Dansk</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-group">
+                            <label for="defaultZoom">Default Zoom Level:</label>
+                            <select id="defaultZoom">
+                                <option value="24hours">Next 24 hours</option>
+                                <option value="3days">Next 3 days</option>
+                                <option value="whole">Whole period</option>
                             </select>
                         </div>
                     </div>

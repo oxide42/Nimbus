@@ -7,7 +7,14 @@
   },
   "buttons": {
     "refresh": "Refresh",
-    "settings": "Settings"
+    "settings": "Settings",
+    "zoom": "Zoom"
+  },
+  "zoom": {
+    "next24hours": "Next 24 hours",
+    "next3days": "Next 3 days",
+    "wholePeriod": "Whole period",
+    "defaultZoom": "Default Zoom Level"
   },
   "settings": {
     "title": "Settings",

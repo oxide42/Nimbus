@@ -2,6 +2,9 @@ class WeatherChart {
   constructor(settings) {
     this.settings = settings;
     this.chart = null;
+    this.xAxis1 = null;
+    this.xAxis2 = null;
+    this.tempSeries = null;
   }
 
   /*
@@ -44,6 +47,7 @@ function update() {
         layout: root.verticalLayout,
       }),
     );
+    chart1.zoomOutButton.set("forceHidden", true);
 
     const xAxis1 = this.createXAxis(root, chart1);
     const yAxis1 = this.createYAxis(root, chart1);
@@ -79,6 +83,11 @@ function update() {
     // Create x-axis for second chart and sync with first chart
     const xAxis2 = this.createXAxis(root2, chart2);
 
+    // Store references for zoom functionality
+    this.xAxis1 = xAxis1;
+    this.xAxis2 = xAxis2;
+    this.tempSeries = tempSeries;
+
     // Hide x-axis for chart2
     xAxis2.get("renderer").labels.template.set("forceHidden", true);
     xAxis2.get("renderer").grid.template.set("forceHidden", true);
@@ -88,19 +97,19 @@ function update() {
 
     // Link the x-axes for synchronized zooming and panning (one-way sync)
     // Use chart events instead of axis events for better reliability
-    chart1.events.on("wheelended", function () {
+    const syncAxes = function () {
       const start = xAxis1.get("start", 0);
       const end = xAxis1.get("end", 1);
       xAxis2.set("start", start);
       xAxis2.set("end", end);
-    });
+    };
 
-    chart1.events.on("panended", function () {
-      const start = xAxis1.get("start", 0);
-      const end = xAxis1.get("end", 1);
-      xAxis2.set("start", start);
-      xAxis2.set("end", end);
-    });
+    chart1.events.on("wheelended", syncAxes);
+    chart1.events.on("panended", syncAxes);
+
+    // Also sync on xAxis1 range changes (for programmatic zoom)
+    xAxis1.onPrivate("selectionMin", syncAxes);
+    xAxis1.onPrivate("selectionMax", syncAxes);
 
     // Add precipitation and sun series to second chart
     const precipSeries2 = this.createPrecipitationSeries(
@@ -124,21 +133,41 @@ function update() {
 
     const doInitialZoom = function () {
       if (tempValidated && precipValidated) {
+        // Use the default zoom level from settings
+        const defaultZoom = self.settings.getDefaultZoom();
+
         const firstDate = new Date(tempSeries.dataItems[0].dataContext.time);
-        // lastDate is firstDate plus two days
-        let delta = 2 * 24 * 60 * 60 * 1000;
+        const lastDataDate = new Date(
+          tempSeries.dataItems[
+            tempSeries.dataItems.length - 1
+          ].dataContext.time,
+        );
+        let targetDate;
 
-        switch (self.settings.getForecastType()) {
-          case "daily":
-            delta = delta * 24;
+        switch (defaultZoom) {
+          case "24hours":
+            targetDate = new Date(firstDate.getTime() + 24 * 60 * 60 * 1000);
             break;
-          case "3-hourly":
-            delta = delta * 3;
+          case "3days":
+            targetDate = new Date(
+              firstDate.getTime() + 3 * 24 * 60 * 60 * 1000,
+            );
             break;
+          case "whole":
+            targetDate = lastDataDate;
+            break;
+          default:
+            targetDate = new Date(
+              firstDate.getTime() + 3 * 24 * 60 * 60 * 1000,
+            );
         }
-        const lastDate = new Date(firstDate.getTime() + delta);
 
-        xAxis1.zoomToDates(firstDate, lastDate);
+        // Ensure we don't zoom past the available data
+        if (targetDate > lastDataDate) {
+          targetDate = lastDataDate;
+        }
+
+        xAxis1.zoomToDates(firstDate, targetDate);
 
         // Use requestAnimationFrame to sync after the zoom animation starts
         requestAnimationFrame(() => {
@@ -603,5 +632,46 @@ function update() {
       this.chart2.dispose();
       this.chart2 = null;
     }
+  }
+
+  zoomTo(zoomLevel) {
+    if (
+      !this.xAxis1 ||
+      !this.xAxis2 ||
+      !this.tempSeries ||
+      !this.tempSeries.dataItems.length
+    ) {
+      return;
+    }
+
+    const firstDate = new Date(this.tempSeries.dataItems[0].dataContext.time);
+    const lastDataDate = new Date(
+      this.tempSeries.dataItems[
+        this.tempSeries.dataItems.length - 1
+      ].dataContext.time,
+    );
+    let targetDate;
+
+    switch (zoomLevel) {
+      case "24hours":
+        targetDate = new Date(firstDate.getTime() + 24 * 60 * 60 * 1000);
+        break;
+      case "3days":
+        targetDate = new Date(firstDate.getTime() + 3 * 24 * 60 * 60 * 1000);
+        break;
+      case "whole":
+        targetDate = lastDataDate;
+        break;
+      default:
+        targetDate = new Date(firstDate.getTime() + 3 * 24 * 60 * 60 * 1000);
+    }
+
+    // Ensure we don't zoom past the available data
+    if (targetDate > lastDataDate) {
+      targetDate = lastDataDate;
+    }
+
+    this.xAxis1.zoomToDates(firstDate, targetDate);
+    // The sync will happen automatically via the onPrivate listeners
   }
 }

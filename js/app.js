@@ -28,6 +28,8 @@ class WeatherApp {
   initializeUI() {
     const settingsBtn = document.getElementById("settingsBtn");
     const refreshBtn = document.getElementById("refreshBtn");
+    const zoomBtn = document.getElementById("zoomBtn");
+    const zoomMenu = document.getElementById("zoomMenu");
     const mainPage = document.getElementById("mainPage");
     const settingsPage = document.getElementById("settingsPage");
 
@@ -44,6 +46,35 @@ class WeatherApp {
 
     refreshBtn.addEventListener("click", () => {
       location.reload();
+    });
+
+    // Zoom button and menu
+    zoomBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      zoomMenu.classList.toggle("hidden");
+    });
+
+    // Close zoom menu when clicking outside
+    document.addEventListener("click", (e) => {
+      if (
+        !zoomMenu.classList.contains("hidden") &&
+        !zoomMenu.contains(e.target) &&
+        e.target !== zoomBtn
+      ) {
+        zoomMenu.classList.add("hidden");
+      }
+    });
+
+    // Zoom menu item click handlers
+    const zoomMenuItems = document.querySelectorAll(".zoom-menu-item");
+    zoomMenuItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        const zoomLevel = item.getAttribute("data-zoom");
+        if (this.weatherChart) {
+          this.weatherChart.zoomTo(zoomLevel);
+        }
+        zoomMenu.classList.add("hidden");
+      });
     });
   }
 
@@ -71,6 +102,23 @@ class WeatherApp {
     if (locationName.textContent === "Loading location...") {
       locationName.textContent = t("app.loading");
     }
+
+    // Update zoom menu items
+    const zoomMenuItems = document.querySelectorAll(".zoom-menu-item");
+    zoomMenuItems.forEach((item) => {
+      const zoomLevel = item.getAttribute("data-zoom");
+      switch (zoomLevel) {
+        case "24hours":
+          item.textContent = t("zoom.next24hours");
+          break;
+        case "3days":
+          item.textContent = t("zoom.next3days");
+          break;
+        case "whole":
+          item.textContent = t("zoom.wholePeriod");
+          break;
+      }
+    });
   }
 
   async loadWeatherData() {
