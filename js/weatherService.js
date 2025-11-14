@@ -246,14 +246,6 @@ class WeatherService {
       return {
         ...dataPoint,
         sunHours: correctedSunHours,
-        // Add debug info about sun times (can be removed later)
-        _sunDebug: {
-          sunrise: sunTimes.sunrise,
-          sunset: sunTimes.sunset,
-          isDaylight: isDaylight,
-          originalSunHours: dataPoint.sunHours,
-          correctedSunHours: correctedSunHours,
-        },
       };
     });
   }
