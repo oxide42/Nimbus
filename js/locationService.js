@@ -2,6 +2,8 @@ class LocationService {
   constructor(settings) {
     this.settings = settings;
     this.cache = Cache.getInstance();
+    this.cacheLocationKey = "location_position_cache";
+    this.cachePlaceNameKey = "location_place_name_cache";
   }
 
   truncateCoordinates(lat, lon) {
@@ -13,7 +15,7 @@ class LocationService {
 
   async getCurrentPosition() {
     // Check cache first
-    const cachedPosition = this.cache.getItem("location_position");
+    const cachedPosition = this.cache.getItem(this.cacheLocationKey);
     if (cachedPosition) {
       return cachedPosition;
     }
@@ -40,7 +42,7 @@ class LocationService {
             Date.now() +
             this.settings.settings.locationCacheMinutes * 60 * 1000;
           this.cache.setItem(
-            "location_position",
+            this.cacheLocationKey,
             processedPosition,
             expiryTime,
           );
@@ -58,7 +60,7 @@ class LocationService {
               Date.now() +
               this.settings.settings.locationCacheMinutes * 60 * 1000;
             this.cache.setItem(
-              "location_position",
+              this.cacheLocationKey,
               fallbackPosition,
               expiryTime,
               this.cacheVersion,
@@ -94,7 +96,7 @@ class LocationService {
   async getCurrentPlaceName(lat, lon) {
     // Create cache key based on truncated coordinates
     const truncated = this.truncateCoordinates(lat, lon);
-    const cacheKey = `place_name_${truncated.latitude}_${truncated.longitude}`;
+    const cacheKey = `${this.cachePlaceNameKey}_${truncated.latitude}_${truncated.longitude}`;
 
     // Check cache first
     const cachedPlaceName = this.cache.getItem(cacheKey, this.cacheVersion);
@@ -155,7 +157,7 @@ class LocationService {
 
   clearCache() {
     this.locationCache = null;
-    this.cache.removeItem("location_position");
+    this.cache.removeItem(this.cacheKey);
     // Clear all place name caches (would need to track keys for full implementation)
   }
 }

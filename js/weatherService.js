@@ -10,7 +10,7 @@ class WeatherService {
     this.locationService = new LocationService(settings);
     this.sunService = new SunService();
     this.extremaService = new ExtremaService(settings);
-    this.cachePrefix = "nimbus-weather-cache-";
+    this.cachePrefix = "weather_cache_";
     this.cacheVersion = 1;
     this.temperatureService = new TemperatureService();
     this.convertService = new ConvertService();
@@ -152,7 +152,7 @@ class WeatherService {
       const { latitude, longitude } = position.coords;
 
       // Check cache first (no version check needed - handled by #getCachedData)
-      const cacheKey = `${this.cachePrefix}${this.currentProvider}-${latitude.toFixed(2)}-${longitude.toFixed(2)}`;
+      const cacheKey = `${this.cachePrefix}${this.currentProvider}_${latitude.toFixed(2)}_${longitude.toFixed(2)}`;
 
       const cachedData = this.#getCachedData(cacheKey);
       if (cachedData) {
