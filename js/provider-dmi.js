@@ -41,12 +41,13 @@ class DmiProvider extends Provider {
         const properties = item.properties;
         return {
           time: new Date(properties.step),
-          temperature: this.settings.convertTemperature(
-            properties["temperature-2m"] - 273.15,
+          temperature: ConvertService.toCelsius(
+            properties["temperature-2m"],
+            "kelvin",
           ),
           precipitation: properties["total-precipitation"],
           precipitationProb: null,
-          windSpeed: this.settings.convertWindSpeed(properties["wind-speed"]),
+          windSpeed: properties["wind-speed"],
           clouds: 100 * Math.max(0, 1 - properties["cloud-transmittance"]),
           sunHours: 100 * properties["cloud-transmittance"],
         };

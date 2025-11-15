@@ -10,8 +10,10 @@ class WeatherService {
     this.locationService = new LocationService(settings);
     this.sunService = new SunService();
     this.extremaService = new ExtremaService(settings);
-    // Use localStorage for weather data cache (cookies are too small)
     this.cachePrefix = "nimbus-weather-cache-";
+    this.cacheVersion = "v4"; // Increment when cache structure changes (v4: fixed apparent temperature to use numeric values)
+    this.temperatureService = new TemperatureService();
+    this.convertService = new ConvertService();
   }
 
   setProvider(providerName) {
@@ -27,33 +29,6 @@ class WeatherService {
       throw new Error(`Unknown weather provider: ${this.currentProvider}`);
     }
     return new ProviderClass(this.settings);
-  }
-
-  #ema(data, property, ema_length = 3) {
-    const alpha = 2 / (ema_length + 1); // 0.5
-    const emaValues = [];
-
-    let ema = data[0][property]; // seed with first value
-    emaValues.push(ema);
-
-    for (let i = 1; i < data.length; i++) {
-      ema = alpha * data[i][property] + (1 - alpha) * ema;
-      emaValues.push(ema);
-    }
-    return emaValues;
-  }
-
-  #smooth(data) {
-    //const temp_ema = this.#ema(data, "temperature", 3);
-    const wind_ema = this.#ema(data, "windSpeed", 4);
-    const windgusts_ema = this.#ema(data, "windGusts", 4);
-
-    // Apply ema on data structure
-    data.forEach((item, index) => {
-      item.temperature = temp_ema[index];
-      item.windSpeed = wind_ema[index];
-      item.windGusts = windgusts_ema[index];
-    });
   }
 
   /**
@@ -119,27 +94,65 @@ class WeatherService {
     return data;
   }
 
+  #calculateApparentTemperature(weatherData, latitude, longitude) {
+    if (!this.settings.getShowApparentTemperature()) {
+      return weatherData;
+    }
+
+    return weatherData.map((dataPoint) => {
+      const apparentTemp = this.temperatureService.Calculate(
+        ConvertService.toUtcTime(dataPoint.time),
+        latitude,
+        longitude,
+        dataPoint.humidity || 50, // Use 50% as default if humidity is missing
+        dataPoint.clouds,
+        dataPoint.temperature,
+        dataPoint.windSpeed,
+      );
+
+      return {
+        ...dataPoint,
+        apparentTemperature: {
+          avg: apparentTemp.temp.avg.vind,
+          min: apparentTemp.temp.min.vind,
+          max: apparentTemp.temp.max.vind,
+        },
+      };
+    });
+  }
+
   async fetchWeatherData(forecastType) {
     try {
       const position = await this.locationService.getCurrentPosition();
       const { latitude, longitude } = position.coords;
 
-      // Check cache first
-      const cacheKey = `${this.cachePrefix}${this.currentProvider}-${latitude.toFixed(2)}-${longitude.toFixed(2)}`;
+      // Check cache first (include apparent temp setting in key since it affects data structure)
+      const apparentTempEnabled = this.settings.getShowApparentTemperature()
+        ? "1"
+        : "0";
+      const cacheKey = `${this.cachePrefix}${this.currentProvider}-${latitude.toFixed(2)}-${longitude.toFixed(2)}-at${apparentTempEnabled}`;
 
       const cachedItem = localStorage.getItem(cacheKey);
       if (cachedItem) {
         try {
-          const { data, expiry } = JSON.parse(cachedItem);
-          if (expiry > Date.now()) {
+          const cached = JSON.parse(cachedItem);
+          const { data, alerts, expiry, version } = cached;
+
+          // Invalidate cache if version doesn't match
+          if (version !== this.cacheVersion) {
+            localStorage.removeItem(cacheKey);
+          } else if (expiry > Date.now()) {
             // Reconstruct Date objects
-            if (data.data && Array.isArray(data.data)) {
-              data.data = data.data.map((item) => ({
+            if (data && Array.isArray(data)) {
+              const reconstructedData = data.map((item) => ({
                 ...item,
                 time: new Date(item.time),
               }));
+              return {
+                data: reconstructedData,
+                alerts: alerts || [],
+              };
             }
-            return data;
           } else {
             localStorage.removeItem(cacheKey);
           }
@@ -160,35 +173,43 @@ class WeatherService {
       let processedData = provider.processWeatherData(result);
 
       // Postprocess sun hours to correct for nighttime
-      const correctedData = this.#correctSunHours(
+      let correctedData = this.#correctSunHours(
         processedData,
         latitude,
         longitude,
       );
 
-      // Smooth data
-      //this.#smooth(correctedData);
+      // Apply apparent temperature if setting is enabled
+      correctedData = this.#calculateApparentTemperature(
+        correctedData,
+        latitude,
+        longitude,
+      );
 
       // Mark extrema points for temperature and wind
-      processedData = this.extremaService.markExtrema(correctedData, [
-        "temperature",
-        "windSpeed",
-        "windGusts",
-      ]);
+      const extremaFields = ["temperature", "windSpeed", "windGusts"];
+
+      // Add apparent temperature extrema if enabled
+      if (this.settings.getShowApparentTemperature()) {
+        extremaFields.push("apparentTemperature.min");
+        extremaFields.push("apparentTemperature.max");
+      }
+
+      correctedData = this.extremaService.markExtrema(
+        correctedData,
+        extremaFields,
+      );
 
       // Group precipitation periods
-      processedData = this.#groupPrecipitation(processedData);
-
-      const finalResult = {
-        data: processedData,
-        alerts: result.alerts,
-      };
+      const finalResult = this.#groupPrecipitation(correctedData);
 
       // Cache the processed result
       const expiryTime =
         Date.now() + this.settings.settings.locationCacheMinutes * 60 * 1000;
       const cacheData = {
+        version: this.cacheVersion,
         data: finalResult,
+        alerts: processedData.alerts || [],
         expiry: expiryTime,
       };
 
@@ -198,7 +219,10 @@ class WeatherService {
         console.error("Failed to cache weather data:", e);
       }
 
-      return finalResult;
+      return {
+        data: finalResult,
+        alerts: processedData.alerts,
+      };
     } catch (error) {
       const errorText = `Failed to fetch weather data: ${error.message}`;
       console.error(error.stack);

@@ -54,12 +54,24 @@ function update() {
     const yAxisRight1 = this.createYAxisRight(root, chart1, yAxis1);
     const windAxis = this.createWindAxis(root, chart1);
 
+    // Create apparent temperature band series FIRST if enabled (so it appears behind temperature line)
+    let apparentTempSeries = null;
+    if (this.settings.getShowApparentTemperature()) {
+      apparentTempSeries = this.createApparentTemperatureSeries(
+        root,
+        chart1,
+        xAxis1,
+        yAxis1,
+      );
+    }
+
     const tempSeries = this.createTemperatureSeries(
       root,
       chart1,
       xAxis1,
       yAxis1,
     );
+
     const windSeries = this.createWindSeries(root, chart1, xAxis1, windAxis);
 
     // Create second chart in chartContainer2
@@ -122,10 +134,12 @@ function update() {
 
     const chartData = this.prepareChartData(weatherData);
 
-    this.setSeriesData(
-      [tempSeries, windSeries, precipSeries2, sunSeries],
-      chartData,
-    );
+    const seriesToSet = [tempSeries, windSeries, precipSeries2, sunSeries];
+    if (apparentTempSeries) {
+      seriesToSet.push(apparentTempSeries);
+    }
+
+    this.setSeriesData(seriesToSet, chartData);
 
     // Wait for both charts' data to be validated before initial zoom
     let tempValidated = false;
@@ -193,6 +207,14 @@ function update() {
 
     // Setup bullets for each series
     this.setupBullets(root, tempSeries, weatherData, "temperature");
+    if (apparentTempSeries) {
+      this.setupBullets(
+        root,
+        apparentTempSeries,
+        weatherData,
+        "apparentTemperature",
+      );
+    }
     this.setupBullets(root, windSeries, weatherData, "wind");
     this.setupBullets(root2, sunSeries, weatherData, "sun");
     this.setupBullets(root2, precipSeries2, weatherData, "precipitation");
@@ -330,6 +352,35 @@ function update() {
     return tempSeries;
   }
 
+  createApparentTemperatureSeries(root, chart, xAxis, yAxis) {
+    const apparentTempSeries = chart.series.push(
+      am5xy.SmoothedXLineSeries.new(root, {
+        name: `Apparent Temperature (${this.settings.getTemperatureUnit()})`,
+        xAxis: xAxis,
+        yAxis: yAxis,
+        tension: 0.8,
+        valueYField: "apparentTemperatureMax",
+        openValueYField: "apparentTemperatureMin",
+        valueXField: "time",
+        locationX: 0,
+      }),
+    );
+
+    apparentTempSeries.strokes.template.setAll({
+      strokeWidth: 1,
+      stroke: am5.color("#FFA500"),
+      strokeOpacity: 0.3,
+    });
+
+    apparentTempSeries.fills.template.setAll({
+      fillOpacity: 0.15,
+      visible: true,
+      fill: am5.color("#FFA500"),
+    });
+
+    return apparentTempSeries;
+  }
+
   createPrecipitationSeries(root, chart, xAxis, yAxis) {
     const precipSeries = chart.series.push(
       am5xy.LineSeries.new(root, {
@@ -433,6 +484,8 @@ function update() {
     return processedData.map((item) => ({
       time: item.time.getTime(),
       temperature: item.temperature,
+      apparentTemperatureMin: item.apparentTemperature?.min,
+      apparentTemperatureMax: item.apparentTemperature?.max,
       precipitation: item.precipitation,
       precipitationProb: item.precipitationProb,
       sunHours: item.sunHours,
@@ -573,14 +626,50 @@ function update() {
       processedData.forEach((dataPoint, index) => {
         if (dataPoint.extrema) {
           if (seriesType === "temperature") {
+            // Skip temperature labels if apparent temperature is shown
+            if (this.settings.getShowApparentTemperature()) {
+              return;
+            }
+
             // Add temperature bullets
             if (
               dataPoint.extrema.isMinima?.includes("temperature") ||
               dataPoint.extrema.isMaxima?.includes("temperature")
             ) {
-              const roundedValue = Math.round(dataPoint.temperature);
+              // Convert from Celsius to user's preferred unit
+              const userUnit = this.settings.settings.tempUnit;
+              const convertedTemp = ConvertService.toTemperature(
+                dataPoint.temperature,
+                "celsius",
+                userUnit,
+              );
+              const roundedValue = Math.round(convertedTemp);
               const formattedValue = roundedValue + "°";
               addBullet(series, index, formattedValue, "temperature");
+            }
+          } else if (seriesType === "apparentTemperature") {
+            // Only show apparent temperature max labels
+            if (
+              dataPoint.extrema.isMinima?.includes("apparentTemperature.max") ||
+              dataPoint.extrema.isMaxima?.includes("apparentTemperature.max")
+            ) {
+              // Convert from Celsius to user's preferred unit
+              const userUnit = this.settings.settings.tempUnit;
+              const convertedTemp = ConvertService.toTemperature(
+                dataPoint.apparentTemperature.max,
+                "celsius",
+                userUnit,
+              );
+              const roundedValue = Math.round(convertedTemp);
+              const formattedValue = roundedValue + "°";
+              addBullet(
+                series,
+                index,
+                formattedValue,
+                "apparentTemperature",
+                am5.p50,
+                am5.p0,
+              );
             }
           } else if (seriesType === "wind") {
             // Add wind bullets
@@ -593,7 +682,15 @@ function update() {
               dataPoint.extrema.isMinima?.includes(windField) ||
               dataPoint.extrema.isMaxima?.includes(windField)
             ) {
-              const roundedValue = Math.round(dataPoint[windField]);
+              // Convert from m/s to user's preferred unit
+              const userUnit = this.settings.settings.windUnit;
+              const windSpeedMs = dataPoint[windField];
+              const convertedSpeed = ConvertService.toWindSpeed(
+                windSpeedMs,
+                "ms",
+                userUnit,
+              );
+              const roundedValue = Math.round(convertedSpeed);
               const formattedValue =
                 roundedValue + " " + this.settings.getWindSpeedUnit();
               addBullet(series, index, formattedValue, "wind");

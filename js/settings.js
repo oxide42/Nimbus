@@ -8,6 +8,7 @@ class Settings {
       windUnit: "ms",
       showWindGusts: false,
       showCurrentWeather: true,
+      showApparentTemperature: false,
       locationCacheMinutes: 15,
       owmForecastType: "3-hourly",
       language: null, // null means auto-detect from browser
@@ -34,6 +35,7 @@ class Settings {
     this.settings.windUnit = windUnit.value;
     this.settings.showWindGusts = showWindGusts.value;
     this.settings.showCurrentWeather = showCurrentWeather.value;
+    this.settings.showApparentTemperature = showApparentTemperature.value;
     this.settings.locationCacheMinutes =
       parseInt(locationCacheMinutes.value) || 30;
     this.settings.owmForecastType = owmForecastType.value;
@@ -78,6 +80,13 @@ class Settings {
     return this.settings.defaultZoom || "3days";
   }
 
+  getShowApparentTemperature() {
+    return (
+      this.settings.showApparentTemperature == "true" ||
+      this.settings.showApparentTemperature === true
+    );
+  }
+
   async initializeUI(i18n) {
     this.i18n = i18n;
 
@@ -89,6 +98,9 @@ class Settings {
     const windUnit = document.getElementById("windUnit");
     const showWindGusts = document.getElementById("showWindGusts");
     const showCurrentWeather = document.getElementById("showCurrentWeather");
+    const showApparentTemperature = document.getElementById(
+      "showApparentTemperature",
+    );
     const locationCacheMinutes = document.getElementById(
       "locationCacheMinutes",
     );
@@ -103,6 +115,7 @@ class Settings {
     windUnit.value = this.settings.windUnit;
     showWindGusts.value = this.settings.showWindGusts;
     showCurrentWeather.value = this.settings.showCurrentWeather;
+    showApparentTemperature.value = this.settings.showApparentTemperature;
     locationCacheMinutes.value = this.settings.locationCacheMinutes;
     owmForecastType.value = this.settings.owmForecastType;
     languageSelect.value = this.settings.language || i18n.getCurrentLanguage();
@@ -216,6 +229,11 @@ class Settings {
       false: t("settings.no"),
     });
 
+    this.updateSelectOptions("showApparentTemperature", {
+      true: t("settings.yes"),
+      false: t("settings.no"),
+    });
+
     this.updateSelectOptions("darkMode", {
       true: t("settings.on"),
       false: t("settings.off"),
@@ -259,26 +277,6 @@ class Settings {
       dmiGroup.style.display = "block";
     } else if (provider === "openmeteo") {
       // Open-Meteo doesn't require API token
-    }
-  }
-
-  convertTemperature(celsius) {
-    if (this.settings.tempUnit === "fahrenheit") {
-      return (celsius * 9) / 5 + 32;
-    }
-    return celsius;
-  }
-
-  convertWindSpeed(ms) {
-    switch (this.settings.windUnit) {
-      case "kmh":
-        return ms * 3.6;
-      case "mph":
-        return ms * 2.237;
-      case "knots":
-        return ms * 1.944;
-      default:
-        return ms;
     }
   }
 

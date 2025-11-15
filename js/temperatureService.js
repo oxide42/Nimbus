@@ -31,25 +31,25 @@ class TemperatureService {
   ) {
     const min_wind_speed = 0;
 
-    const sundata = this.sunService.SunCalculations(lat, lon, utctime);
-    const solarinsolation_max = this.sunService.SolarInsolationCalculations(
+    const sundata = this.sunService.calculateSunTimes(lat, lon, utctime);
+    const solarinsolation_max = this.sunService.getSolarInsolation(
       sundata.zenith,
       0,
     );
-    const solarinsolation_avg = this.sunService.SolarInsolationCalculations(
+    const solarinsolation_avg = this.sunService.getSolarInsolation(
       sundata.zenith,
       clouds_pct,
     );
     sundata.solarinsolation = solarinsolation_avg;
 
     const temp_avg = {
-      vindstille: ApparentTemperature(
+      vindstille: this.getApparentTemperature(
         relative_humidity_pct,
         temperature_degrees,
         min_wind_speed,
         solarinsolation_avg,
       ),
-      vind: ApparentTemperature(
+      vind: this.getApparentTemperature(
         relative_humidity_pct,
         temperature_degrees,
         wind_speed_ms,
@@ -58,13 +58,13 @@ class TemperatureService {
     };
 
     const temp_max = {
-      vindstille: ApparentTemperature(
+      vindstille: this.getApparentTemperature(
         relative_humidity_pct,
         temperature_degrees,
         min_wind_speed,
         solarinsolation_max,
       ),
-      vind: ApparentTemperature(
+      vind: this.getApparentTemperature(
         relative_humidity_pct,
         temperature_degrees,
         wind_speed_ms,
@@ -73,13 +73,13 @@ class TemperatureService {
     };
 
     const temp_min = {
-      vindstille: ApparentTemperature(
+      vindstille: this.getApparentTemperature(
         relative_humidity_pct,
         temperature_degrees,
         min_wind_speed,
         0,
       ),
-      vind: ApparentTemperature(
+      vind: this.getApparentTemperature(
         relative_humidity_pct,
         temperature_degrees,
         wind_speed_ms,
@@ -87,19 +87,13 @@ class TemperatureService {
       ),
     };
 
-    const temp = {
-      max: temp_max,
-      avg: temp_avg,
-      min: temp_min,
-      real: temperature_degrees,
-    };
-
-    const result = {
-      temp: temp,
+    return {
+      temp: {
+        avg: temp_avg,
+        max: temp_max,
+        min: temp_min,
+      },
       sun: sundata,
-      tid: utctime.toISOString().slice(0, 16).replace("T", " "),
     };
-
-    return result;
   }
 }

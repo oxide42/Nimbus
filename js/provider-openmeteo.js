@@ -53,13 +53,13 @@ class OpenMeteoProvider extends Provider {
 
         return {
           time: new Date(time),
-          temperature: this.settings.convertTemperature(temp),
-          tempMin: this.settings.convertTemperature(temp),
-          tempMax: this.settings.convertTemperature(temp),
+          temperature: temp,
+          tempMin: temp,
+          tempMax: temp,
           precipitation: precip,
           precipitationProb: 0,
-          windSpeed: this.settings.convertWindSpeed(windSpeed),
-          windGusts: this.settings.convertWindSpeed(windGusts),
+          windSpeed: windSpeed,
+          windGusts: windGusts,
           clouds: cloudCover,
           sunHours: Math.max(0, 100 - cloudCover),
           humidity: humidity,

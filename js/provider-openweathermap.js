@@ -38,38 +38,38 @@ class OpenWeatherMapProvider extends Provider {
     if (forecastType === "daily") {
       processedData = data.daily.map((item) => ({
         time: new Date(item.dt * 1000),
-        temperature: this.settings.convertTemperature(item.temp.day),
-        tempMin: this.settings.convertTemperature(item.temp.min),
-        tempMax: this.settings.convertTemperature(item.temp.max),
+        temperature: item.temp.day,
+        tempMin: item.temp.min,
+        tempMax: item.temp.max,
         precipitation: item.rain ? item.rain : 0,
         precipitationProb: item.pop ? Math.round(item.pop * 100) : 0,
-        windSpeed: this.settings.convertWindSpeed(item.wind_speed),
+        windSpeed: item.wind_speed,
         clouds: item.clouds,
         sunHours: Math.max(0, 100 - item.clouds),
       }));
     } else if (forecastType === "hourly") {
       processedData = data.hourly.map((item) => ({
         time: new Date(item.dt * 1000),
-        temperature: this.settings.convertTemperature(item.temp),
-        tempMin: this.settings.convertTemperature(item.temp),
-        tempMax: this.settings.convertTemperature(item.temp),
+        temperature: item.temp,
+        tempMin: item.temp,
+        tempMax: item.temp,
         precipitation: item.rain ? item.rain["1h"] || 0 : 0,
         precipitationProb: item.pop ? Math.round(item.pop * 100) : 0,
-        windSpeed: this.settings.convertWindSpeed(item.wind_speed),
+        windSpeed: item.wind_speed,
         clouds: item.clouds,
         sunHours: Math.max(0, 100 - item.clouds),
       }));
     } else if (forecastType === "3-hourly") {
       processedData = data.list.map((item) => ({
         time: new Date(item.dt * 1000),
-        temperature: this.settings.convertTemperature(item.main["temp"]),
-        tempMin: this.settings.convertTemperature(item.main["temp_min"]),
-        tempMax: this.settings.convertTemperature(item.main["temp_max"]),
+        temperature: item.main["temp"],
+        tempMin: item.main["temp_min"],
+        tempMax: item.main["temp_max"],
         precipitation: item.rain ? item.rain["3h"] || 0 : 0,
         precipitationProb: item.pop ? Math.round(item.pop * 100) : 0,
-        windSpeed: this.settings.convertWindSpeed(item.wind["speed"]),
-        windGust: this.settings.convertWindSpeed(item.wind["gust"]),
-        windDegree: this.settings.convertWindSpeed(item.wind["deg"]),
+        windSpeed: item.wind["speed"],
+        windGust: item.wind["gust"],
+        windDegree: item.wind["deg"],
         clouds: item.clouds["all"],
         sunHours: Math.max(0, 100 - item.clouds["all"]),
       }));

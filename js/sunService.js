@@ -43,10 +43,10 @@ class SunService {
    * @returns {number} - Day of year (1-366)
    */
   getDayOfYear(date) {
-    const start = new Date(date.getFullYear(), 0, 0);
-    const diff = date - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    return Math.floor(diff / oneDay);
+    const start = new Date(date.getFullYear(), 0, 0); // Jan 1st, 00:00:00
+    const diff = date - start; // ms since start of year
+    const oneDay = 1000 * 60 * 60 * 24; // ms in one day
+    return Math.floor(diff / oneDay); // day-of-year (1–366)
   }
 
   /**
@@ -79,6 +79,10 @@ class SunService {
   calculateSunTimes(lat, lon, utcTime) {
     const { PI, A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B0 } =
       this.constants;
+
+    if (!(utcTime instanceof Date)) {
+      throw new Error("Invalid date: " + utcTime);
+    }
 
     const timezone = 1; // Assuming Central European Time
     const jday = this.getDayOfYear(utcTime);

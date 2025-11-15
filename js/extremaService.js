@@ -4,6 +4,16 @@ class ExtremaService {
   }
 
   /**
+   * Get nested property value from object using dot notation
+   * @param {Object} obj - Object to get value from
+   * @param {string} path - Property path (e.g., 'apparentTemperature.min')
+   * @returns {*} - Property value or undefined
+   */
+  #getNestedProperty(obj, path) {
+    return path.split(".").reduce((current, prop) => current?.[prop], obj);
+  }
+
+  /**
    * Mark datapoints with extrema property
    * @param {Array} timeSeries - Array of data points
    * @param {Array} properties - Array of property names to analyze (e.g., ['temperature', 'windSpeed'])
@@ -32,7 +42,15 @@ class ExtremaService {
   ) {
     if (timeseries.length < 3) return;
 
-    const data = timeseries.map((point) => point[property]);
+    const data = timeseries.map((point) =>
+      this.#getNestedProperty(point, property),
+    );
+
+    // Check if all values are undefined/null - if so, skip this property
+    if (data.every((val) => val === undefined || val === null)) {
+      return;
+    }
+
     const n = data.length;
 
     let lastMaximaIdx = -Infinity;
@@ -245,7 +263,7 @@ class ExtremaService {
           ];
           const hours = String(time.getHours()).padStart(2, "0");
           const timeStr = `${dayOfWeek} ${hours}`;
-          const temp = Math.round(point[property]);
+          const temp = Math.round(this.#getNestedProperty(point, property));
 
           let marking = "";
           if (point.extrema?.isMaxima?.includes(property)) {
