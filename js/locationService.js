@@ -1,7 +1,7 @@
 class LocationService {
   constructor(settings) {
     this.settings = settings;
-    this.cookieCache = new Cache();
+    this.cache = Cache.getInstance();
   }
 
   truncateCoordinates(lat, lon) {
@@ -13,7 +13,7 @@ class LocationService {
 
   async getCurrentPosition() {
     // Check cache first
-    const cachedPosition = this.cookieCache.get("location_position");
+    const cachedPosition = this.cache.getItem("location_position");
     if (cachedPosition) {
       return cachedPosition;
     }
@@ -36,10 +36,13 @@ class LocationService {
             coords: truncated,
           };
 
-          this.cookieCache.set(
+          const expiryTime =
+            Date.now() +
+            this.settings.settings.locationCacheMinutes * 60 * 1000;
+          this.cache.setItem(
             "location_position",
             processedPosition,
-            this.settings.settings.locationCacheMinutes,
+            expiryTime,
           );
 
           resolve(processedPosition);
@@ -51,10 +54,14 @@ class LocationService {
               coords: this.truncateCoordinates(55.4904, 9.4721),
             };
 
-            this.cookieCache.set(
+            const expiryTime =
+              Date.now() +
+              this.settings.settings.locationCacheMinutes * 60 * 1000;
+            this.cache.setItem(
               "location_position",
               fallbackPosition,
-              this.settings.settings.locationCacheMinutes,
+              expiryTime,
+              this.cacheVersion,
             );
 
             resolve(fallbackPosition);
@@ -89,8 +96,8 @@ class LocationService {
     const truncated = this.truncateCoordinates(lat, lon);
     const cacheKey = `place_name_${truncated.latitude}_${truncated.longitude}`;
 
-    // Check cookie cache first
-    const cachedPlaceName = this.cookieCache.get(cacheKey);
+    // Check cache first
+    const cachedPlaceName = this.cache.getItem(cacheKey, this.cacheVersion);
     if (cachedPlaceName) {
       return cachedPlaceName;
     }
@@ -135,10 +142,9 @@ class LocationService {
       }
 
       // Cache the place name with expiration
-      const expirationDate = new Date(
-        Date.now() + this.settings.settings.locationCacheMinutes * 60 * 1000,
-      );
-      this.cookieCache.set(cacheKey, placeName, expirationDate);
+      const expiryTime =
+        Date.now() + this.settings.settings.locationCacheMinutes * 60 * 1000;
+      this.cache.setItem(cacheKey, placeName, expiryTime, this.cacheVersion);
 
       return placeName;
     } catch (error) {
@@ -149,7 +155,7 @@ class LocationService {
 
   clearCache() {
     this.locationCache = null;
-    this.cookieCache.delete("location_position");
+    this.cache.removeItem("location_position");
     // Clear all place name caches (would need to track keys for full implementation)
   }
 }

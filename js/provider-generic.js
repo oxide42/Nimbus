@@ -1,7 +1,7 @@
 class Provider {
   constructor(settings) {
     this.settings = settings;
-    this.cookieCache = new Cache();
+    this.cache = Cache.getInstance();
   }
 
   async fetchWeatherData(latitude, longitude, forecastType) {

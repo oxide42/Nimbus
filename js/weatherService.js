@@ -11,9 +11,10 @@ class WeatherService {
     this.sunService = new SunService();
     this.extremaService = new ExtremaService(settings);
     this.cachePrefix = "nimbus-weather-cache-";
-    this.cacheVersion = "v4"; // Increment when cache structure changes (v4: fixed apparent temperature to use numeric values)
+    this.cacheVersion = 1;
     this.temperatureService = new TemperatureService();
     this.convertService = new ConvertService();
+    this.cache = Cache.getInstance();
   }
 
   setProvider(providerName) {
@@ -95,10 +96,6 @@ class WeatherService {
   }
 
   #calculateApparentTemperature(weatherData, latitude, longitude) {
-    if (!this.settings.getShowApparentTemperature()) {
-      return weatherData;
-    }
-
     return weatherData.map((dataPoint) => {
       const apparentTemp = this.temperatureService.Calculate(
         ConvertService.toUtcTime(dataPoint.time),
@@ -121,45 +118,45 @@ class WeatherService {
     });
   }
 
+  /**
+   * Get cached weather data if available and not expired
+   * @param {string} cacheKey - Cache key to look up
+   * @returns {Object|null} - Cached data with reconstructed Date objects, or null if not available/expired
+   */
+  #getCachedData(cacheKey) {
+    const cached = this.cache.getItem(cacheKey, this.cacheVersion);
+    if (!cached) {
+      return null;
+    }
+
+    const { data, alerts } = cached;
+
+    // Reconstruct Date objects
+    if (data && Array.isArray(data)) {
+      const reconstructedData = data.map((item) => ({
+        ...item,
+        time: new Date(item.time),
+      }));
+      return {
+        data: reconstructedData,
+        alerts: alerts || [],
+      };
+    }
+
+    return null;
+  }
+
   async fetchWeatherData(forecastType) {
     try {
       const position = await this.locationService.getCurrentPosition();
       const { latitude, longitude } = position.coords;
 
-      // Check cache first (include apparent temp setting in key since it affects data structure)
-      const apparentTempEnabled = this.settings.getShowApparentTemperature()
-        ? "1"
-        : "0";
-      const cacheKey = `${this.cachePrefix}${this.currentProvider}-${latitude.toFixed(2)}-${longitude.toFixed(2)}-at${apparentTempEnabled}`;
+      // Check cache first (no version check needed - handled by #getCachedData)
+      const cacheKey = `${this.cachePrefix}${this.currentProvider}-${latitude.toFixed(2)}-${longitude.toFixed(2)}`;
 
-      const cachedItem = localStorage.getItem(cacheKey);
-      if (cachedItem) {
-        try {
-          const cached = JSON.parse(cachedItem);
-          const { data, alerts, expiry, version } = cached;
-
-          // Invalidate cache if version doesn't match
-          if (version !== this.cacheVersion) {
-            localStorage.removeItem(cacheKey);
-          } else if (expiry > Date.now()) {
-            // Reconstruct Date objects
-            if (data && Array.isArray(data)) {
-              const reconstructedData = data.map((item) => ({
-                ...item,
-                time: new Date(item.time),
-              }));
-              return {
-                data: reconstructedData,
-                alerts: alerts || [],
-              };
-            }
-          } else {
-            localStorage.removeItem(cacheKey);
-          }
-        } catch (e) {
-          console.error("Failed to parse cached data:", e);
-          localStorage.removeItem(cacheKey);
-        }
+      const cachedData = this.#getCachedData(cacheKey);
+      if (cachedData) {
+        return cachedData;
       }
 
       const provider = this.getProvider();
@@ -179,21 +176,21 @@ class WeatherService {
         longitude,
       );
 
-      // Apply apparent temperature if setting is enabled
+      // Always calculate apparent temperature (regardless of display setting)
       correctedData = this.#calculateApparentTemperature(
         correctedData,
         latitude,
         longitude,
       );
 
-      // Mark extrema points for temperature and wind
-      const extremaFields = ["temperature", "windSpeed", "windGusts"];
-
-      // Add apparent temperature extrema if enabled
-      if (this.settings.getShowApparentTemperature()) {
-        extremaFields.push("apparentTemperature.min");
-        extremaFields.push("apparentTemperature.max");
-      }
+      // Mark extrema points for temperature, wind, and apparent temperature
+      const extremaFields = [
+        "temperature",
+        "windSpeed",
+        "windGusts",
+        "apparentTemperature.min",
+        "apparentTemperature.max",
+      ];
 
       correctedData = this.extremaService.markExtrema(
         correctedData,
@@ -207,17 +204,11 @@ class WeatherService {
       const expiryTime =
         Date.now() + this.settings.settings.locationCacheMinutes * 60 * 1000;
       const cacheData = {
-        version: this.cacheVersion,
         data: finalResult,
         alerts: processedData.alerts || [],
-        expiry: expiryTime,
       };
 
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-      } catch (e) {
-        console.error("Failed to cache weather data:", e);
-      }
+      this.cache.setItem(cacheKey, cacheData, expiryTime, this.cacheVersion);
 
       return {
         data: finalResult,
