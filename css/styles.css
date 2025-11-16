@@ -303,6 +303,7 @@ body.dark-mode .zoom-menu-item:hover {
     border-radius: 4px 4px 0 0;
     margin-bottom: -10px;
     height: 500px;
+    max-height: calc(100vh - 350px);
     position: relative;
     z-index: 1;
 }
@@ -314,6 +315,34 @@ body.dark-mode .zoom-menu-item:hover {
     margin-top: 0;
     position: relative;
     z-index: 2;
+}
+
+@media (max-width: 768px) {
+    #chartContainer {
+        height: 400px;
+        max-height: calc(100vh - 300px);
+    }
+}
+
+@media (max-height: 800px) {
+    #chartContainer {
+        height: 350px;
+        max-height: calc(100vh - 280px);
+    }
+}
+
+@media (max-height: 700px) {
+    #chartContainer {
+        height: 300px;
+        max-height: calc(100vh - 260px);
+    }
+}
+
+@media (max-height: 600px) {
+    #chartContainer {
+        height: 250px;
+        max-height: calc(100vh - 240px);
+    }
 }
 
 .chart-legend {
