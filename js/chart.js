@@ -473,12 +473,13 @@ function update() {
 
   getPrecipColor(item) {
     let precipNone = "#FFFFFF";
-    let precipMin = "#A0A0A0";
+    let precipMin = "#ddddFF";
     let precipMedium = "#0000FF";
 
     if (this.settings.getDarkMode()) {
       let chartElement = document.getElementById("chartContainer");
       precipNone = window.getComputedStyle(chartElement).backgroundColor;
+      precipMin = "#6666aa";
     }
 
     if (item.isSnowfall) {
@@ -511,9 +512,11 @@ function update() {
 
   prepareChartData(processedData) {
     let windMin = "#FFFFFF";
+    let sunMin = "#cccccc";
 
     if (this.settings.getDarkMode()) {
       windMin = "#808080";
+      sunMin = "#808080";
     }
 
     return processedData.map((item) => ({
@@ -533,7 +536,7 @@ function update() {
         ? item.windGusts
         : item.windSpeed,
       sunFillSettings: {
-        fill: this.gradientColor(item.sunHours, 0, 50, "#888888", "#ffff22"),
+        fill: this.gradientColor(item.sunHours, 0, 50, sunMin, "#ffff22"),
       },
       tempStrokeSettings: {
         fill:
