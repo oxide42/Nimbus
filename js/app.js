@@ -37,8 +37,10 @@ class WeatherApp {
       // Toggle between main and settings
       if (settingsPage.classList.contains("active")) {
         this.settings.saveSettings();
+        this.clearWeatherCache();
         this.showPage("main");
-        location.reload();
+        this.loadWeatherData();
+        this.loadLocationName();
       } else {
         this.showPage("settings");
       }
@@ -92,6 +94,23 @@ class WeatherApp {
       mainPage.classList.remove("active");
       settingsPage.classList.add("active");
     }
+  }
+
+  clearWeatherCache() {
+    // Clear all weather cache entries
+    const cache = Cache.getInstance();
+    const keysToRemove = [];
+
+    // Find all weather cache keys
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("weather_cache_")) {
+        keysToRemove.push(key);
+      }
+    }
+
+    // Remove all weather cache entries
+    keysToRemove.forEach((key) => cache.removeItem(key));
   }
 
   updateAllText() {
