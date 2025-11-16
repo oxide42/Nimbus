@@ -28,6 +28,7 @@
     "owmForecastType": "OpenWeatherMap Prognosetype",
     "dmiApiToken": "DMI API-nøgle",
     "dmiApiTokenPlaceholder": "Indtast din DMI API-nøgle",
+    "openMeteoModel": "Model",
     "tempUnit": "Temperaturenhed",
     "windUnit": "Enhed for vind",
     "showWindGusts": "Vis Vindstød",

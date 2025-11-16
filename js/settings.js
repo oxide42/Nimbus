@@ -4,6 +4,7 @@ class Settings {
       weatherProvider: "openmeteo",
       owmApiToken: "",
       dmiApiToken: "",
+      openMeteoModel: "auto",
       tempUnit: "celsius",
       windUnit: "ms",
       showWindGusts: false,
@@ -31,6 +32,7 @@ class Settings {
     this.settings.weatherProvider = weatherProvider.value;
     this.settings.owmApiToken = owmApiToken.value;
     this.settings.dmiApiToken = dmiApiToken.value;
+    this.settings.openMeteoModel = openMeteoModel.value;
     this.settings.tempUnit = tempUnit.value;
     this.settings.windUnit = windUnit.value;
     this.settings.showWindGusts = showWindGusts.value;
@@ -94,6 +96,7 @@ class Settings {
     const owmApiToken = document.getElementById("owmApiToken");
     const owmForecastType = document.getElementById("owmForecastType");
     const dmiApiToken = document.getElementById("dmiApiToken");
+    const openMeteoModel = document.getElementById("openMeteoModel");
     const tempUnit = document.getElementById("tempUnit");
     const windUnit = document.getElementById("windUnit");
     const showWindGusts = document.getElementById("showWindGusts");
@@ -111,6 +114,7 @@ class Settings {
     weatherProvider.value = this.settings.weatherProvider;
     owmApiToken.value = this.settings.owmApiToken;
     dmiApiToken.value = this.settings.dmiApiToken;
+    openMeteoModel.value = this.settings.openMeteoModel;
     tempUnit.value = this.settings.tempUnit;
     windUnit.value = this.settings.windUnit;
     showWindGusts.value = this.settings.showWindGusts;
@@ -170,6 +174,7 @@ class Settings {
     this.updateLabel("owmApiToken", t("settings.owmApiToken"));
     this.updateLabel("owmForecastType", t("settings.owmForecastType"));
     this.updateLabel("dmiApiToken", t("settings.dmiApiToken"));
+    this.updateLabel("openMeteoModel", t("settings.openMeteoModel"));
     this.updateLabel("tempUnit", t("settings.tempUnit"));
     this.updateLabel("windUnit", t("settings.windUnit"));
     this.updateLabel("showWindGusts", t("settings.showWindGusts"));
@@ -269,6 +274,7 @@ class Settings {
   toggleFields(provider) {
     owmGroup.style.display = "none";
     dmiGroup.style.display = "none";
+    openMeteoGroup.style.display = "none";
 
     // Show appropriate fields based on provider
     if (provider === "openweathermap") {
@@ -276,7 +282,7 @@ class Settings {
     } else if (provider === "dmi") {
       dmiGroup.style.display = "block";
     } else if (provider === "openmeteo") {
-      // Open-Meteo doesn't require API token
+      openMeteoGroup.style.display = "block";
     }
   }
 
@@ -295,5 +301,9 @@ class Settings {
       default:
         return "m/s";
     }
+  }
+
+  getOpenMeteoModel() {
+    return this.settings.openMeteoModel || "auto";
   }
 }

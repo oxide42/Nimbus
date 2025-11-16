@@ -28,6 +28,7 @@
     "owmForecastType": "OpenWeatherMap Forecast Type",
     "dmiApiToken": "DMI API Token",
     "dmiApiTokenPlaceholder": "Enter your DMI API token",
+    "openMeteoModel": "Model",
     "tempUnit": "Temperature Unit",
     "windUnit": "Wind Speed Unit",
     "showWindGusts": "Show Wind Gusts",

@@ -6,6 +6,8 @@ class OpenMeteoProvider extends Provider {
         "User-Agent": "Nimbus Weather/1.0",
       };
 
+      const model = this.settings.getOpenMeteoModel();
+
       const params = new URLSearchParams({
         latitude: latitude,
         longitude: longitude,
@@ -20,7 +22,12 @@ class OpenMeteoProvider extends Provider {
         ],
       });
 
-      const url = `https://api.open-meteo.com/v1/forecast?${params}`;
+      let modelParam = "";
+      if (model !== "auto") {
+        modelParam = `&models=${model}`;
+      }
+
+      const url = `https://api.open-meteo.com/v1/forecast?${params}${modelParam}`;
 
       const response = await fetch(url, {
         headers: headers,
