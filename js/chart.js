@@ -21,7 +21,7 @@ function update() {
   series.data.setAll(data2);
 }
   */
-
+  snowfall;
   createChart(weatherData, containerId = "chartContainer") {
     const self = this;
 
@@ -471,13 +471,48 @@ function update() {
     return `rgb(${r}, ${g}, ${b})`;
   }
 
-  prepareChartData(processedData) {
-    let precipMin = "#FFFFFF";
-    let windMin = "#FFFFFF";
+  getPrecipColor(item) {
+    let precipNone = "#FFFFFF";
+    let precipMin = "#A0A0A0";
+    let precipMedium = "#0000FF";
 
     if (this.settings.getDarkMode()) {
       let chartElement = document.getElementById("chartContainer");
-      precipMin = window.getComputedStyle(chartElement).backgroundColor;
+      precipNone = window.getComputedStyle(chartElement).backgroundColor;
+    }
+
+    if (item.isSnowfall) {
+      precipMin = "#FFaaFF";
+      precipMedium = "#FF00FF";
+    }
+
+    if (item.precipitation < 0.01) {
+      return precipNone;
+    }
+
+    if (item.precipitation < 10) {
+      return this.gradientColor(
+        item.precipitation,
+        0,
+        10,
+        precipMin,
+        precipMedium,
+      );
+    }
+
+    return this.gradientColor(
+      item.precipitation,
+      10,
+      25,
+      precipMedium,
+      "#ff0000",
+    );
+  }
+
+  prepareChartData(processedData) {
+    let windMin = "#FFFFFF";
+
+    if (this.settings.getDarkMode()) {
       windMin = "#808080";
     }
 
@@ -510,25 +545,8 @@ function update() {
         stroke: this.gradientColor(item.windSpeed, 0, 24, windMin, "#ff0000"),
       },
       precipFillSettings: {
-        stroke: item.precipitation < 0.01 ? precipMin : "#afafaf",
-        fill:
-          item.precipitation < 0.01
-            ? precipMin
-            : item.precipitation < 10
-              ? this.gradientColor(
-                  item.precipitation,
-                  0,
-                  10,
-                  "#A0A0A0",
-                  "#0000ff",
-                )
-              : this.gradientColor(
-                  item.precipitation,
-                  10,
-                  25,
-                  "#0000ff",
-                  "#ff0000",
-                ),
+        //stroke: item.precipitation < 0.01 ? precipMin : "#afafaf",
+        fill: this.getPrecipColor(item),
       },
     }));
   }

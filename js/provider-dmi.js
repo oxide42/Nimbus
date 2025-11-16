@@ -46,6 +46,7 @@ class DmiProvider extends Provider {
             "kelvin",
           ),
           precipitation: properties["total-precipitation"],
+          isSnowfall: false, // todo implement snowfall detection
           precipitationProb: null,
           windSpeed: properties["wind-speed"],
           clouds: 100 * Math.max(0, 1 - properties["cloud-transmittance"]),

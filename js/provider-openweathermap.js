@@ -42,6 +42,7 @@ class OpenWeatherMapProvider extends Provider {
         tempMin: item.temp.min,
         tempMax: item.temp.max,
         precipitation: item.rain ? item.rain : 0,
+        isSnowfall: false, // todo implement snowfall detection
         precipitationProb: item.pop ? Math.round(item.pop * 100) : 0,
         windSpeed: item.wind_speed,
         clouds: item.clouds,

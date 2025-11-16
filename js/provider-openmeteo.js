@@ -12,6 +12,7 @@ class OpenMeteoProvider extends Provider {
         hourly: [
           "temperature_2m",
           "precipitation",
+          "snowfall",
           "wind_speed_10m",
           "wind_gusts_10m",
           "relative_humidity_2m",
@@ -46,6 +47,7 @@ class OpenMeteoProvider extends Provider {
 
         const temp = data.hourly.temperature_2m[index];
         const precip = data.hourly.precipitation?.[index] || 0;
+        const snowfall = data.hourly.snowfall?.[index] || 0 > 0;
         const windSpeed = data.hourly.wind_speed_10m?.[index] / 3.6 || 0;
         const windGusts = data.hourly.wind_gusts_10m?.[index] / 3.6 || 0;
         const cloudCover = data.hourly.cloud_cover?.[index] || 0;
@@ -57,6 +59,7 @@ class OpenMeteoProvider extends Provider {
           tempMin: temp,
           tempMax: temp,
           precipitation: precip,
+          isSnowfall: snowfall,
           precipitationProb: 0,
           windSpeed: windSpeed,
           windGusts: windGusts,
