@@ -111,6 +111,11 @@ class Settings {
     const darkMode = document.getElementById("darkMode");
     const defaultZoom = document.getElementById("defaultZoom");
 
+    // Populate OpenMeteo models dynamically
+    if (typeof OpenMeteoModels !== "undefined") {
+      OpenMeteoModels.populateSelect(openMeteoModel);
+    }
+
     weatherProvider.value = this.settings.weatherProvider;
     owmApiToken.value = this.settings.owmApiToken;
     dmiApiToken.value = this.settings.dmiApiToken;
