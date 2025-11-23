@@ -1,7 +1,7 @@
 class WeatherApp {
   constructor() {
     this.settings = new Settings();
-    this.i18n = new I18n();
+    this.i18n = I18n.getInstance();
     this.init();
   }
 
@@ -10,7 +10,7 @@ class WeatherApp {
     await this.i18n.init(this.settings);
 
     // Initialize settings UI with i18n
-    await this.settings.initializeUI(this.i18n);
+    await this.settings.initializeUI();
 
     // Initialize services
     this.weatherService = new WeatherService(this.settings);

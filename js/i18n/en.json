@@ -71,5 +71,8 @@
   },
   "alerts": {
     "title": "Weather Alerts"
+  },
+  "footer": {
+    "weatherDataFrom": "Weather data from {{provider}}"
   }
 }

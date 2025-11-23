@@ -17,7 +17,6 @@ class Settings {
       defaultZoom: "3days",
     };
     this.settings = this.loadSettings();
-    this.i18n = null;
     this.applyDarkMode();
   }
 
@@ -89,8 +88,8 @@ class Settings {
     );
   }
 
-  async initializeUI(i18n) {
-    this.i18n = i18n;
+  async initializeUI() {
+    const i18n = I18n.getInstance();
 
     const weatherProvider = document.getElementById("weatherProvider");
     const owmApiToken = document.getElementById("owmApiToken");
@@ -154,9 +153,10 @@ class Settings {
   }
 
   updateUIText() {
-    if (!this.i18n) return;
+    const i18n = I18n.getInstance();
+    if (!i18n || !i18n.currentLanguage) return;
 
-    const t = this.i18n.t.bind(this.i18n);
+    const t = i18n.t.bind(i18n);
 
     // Update page title
     document.querySelector(".nav-title h1").textContent = t("app.title");

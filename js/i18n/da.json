@@ -71,5 +71,8 @@
   },
   "alerts": {
     "title": "Vejrvarsler"
+  },
+  "footer": {
+    "weatherDataFrom": "Vejrdata fra {{provider}}"
   }
 }

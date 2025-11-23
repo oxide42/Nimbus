@@ -1,6 +1,7 @@
 class WeatherService {
   constructor(settings) {
     this.settings = settings;
+    this.i18n = I18n.getInstance();
     this.providers = {
       openweathermap: OpenWeatherMapProvider,
       openmeteo: OpenMeteoProvider,
@@ -34,7 +35,13 @@ class WeatherService {
 
   getProviderDisplayName() {
     const provider = this.getProvider();
-    return provider.getDisplayName();
+    const providerName = provider.getDisplayName();
+
+    if (this.i18n) {
+      return this.i18n.t("footer.weatherDataFrom", { provider: providerName });
+    }
+
+    return `Weather data from ${providerName}`;
   }
 
   /**
