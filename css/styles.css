@@ -229,14 +229,33 @@ body.dark-mode .zoom-menu-item:hover {
 
 .current-weather-main {
     display: flex;
-    align-items: center;
-    gap: 15px;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .current-temp {
     font-size: 42px;
     font-weight: bold;
     line-height: 1;
+    justify-self: end;
+}
+
+.weather-table {
+    display: flex;
+    gap: 0px;
+    font-size: 12px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+    max-width: 200px;
+    justify-content: flex-end;
+}
+
+.weather-table-data {
+    justify-self: end;
 }
 
 .current-details {
@@ -259,7 +278,8 @@ body.dark-mode .zoom-menu-item:hover {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    align-content: right;
+    max-width: 300px;
+    justify-self: end;
 }
 
 .weather-stat {

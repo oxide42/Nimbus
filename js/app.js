@@ -223,23 +223,14 @@ class WeatherApp {
         <div class="current-weather-main">
           <div class="current-temp">${temp}${this.settings.getTemperatureUnit()}</div>
           <div class="current-details">
-            <table class="weather-table">
-              <tr>
-                <th></th>
-                <th>No wind</th>
-                <th>Forecast</th>
-              </tr>
-              <tr>
-                <td>${t("currentWeather.patioWeather")}</td>
-                <td>${patioWeatherNoWind}${this.settings.getTemperatureUnit()}</td>
-                <td>${patioWeatherWithWind}${this.settings.getTemperatureUnit()}</td>
-              </tr>
-              <tr>
-                <td>${t("currentWeather.hikingWeather")}</td>
-                <td>${hikingWeatherNoWind}${this.settings.getTemperatureUnit()}</td>
-                <td>${hikingWeatherWithWind}${this.settings.getTemperatureUnit()}</td>
-              </tr>
-            </table>
+            <div class="weather-table">
+              <div>${t("currentWeather.patioWeather")}</div>
+              <div class="weather-table-data weather-stat-value">${patioWeatherNoWind}${this.settings.getTemperatureUnit()}</div>
+              <div class="weather-table-data weather-stat-value">${patioWeatherWithWind}${this.settings.getTemperatureUnit()}</div>
+              <div>${t("currentWeather.hikingWeather")}</div>
+              <div class="weather-table-data weather-stat-value">${hikingWeatherNoWind}${this.settings.getTemperatureUnit()}</div>
+              <div class="weather-table-data weather-stat-value">${hikingWeatherWithWind}${this.settings.getTemperatureUnit()}</div>
+            </div>
           </div>
         </div>
         <div class="current-weather-stats">
