@@ -32,6 +32,11 @@ class WeatherService {
     return new ProviderClass(this.settings);
   }
 
+  getProviderDisplayName() {
+    const provider = this.getProvider();
+    return provider.getDisplayName();
+  }
+
   /**
    * Group consecutive precipitation periods and mark the middle point with total precipitation
    * A group continues if only one period of dry weather separates it from the next precipitation

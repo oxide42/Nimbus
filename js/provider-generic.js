@@ -12,7 +12,7 @@ class Provider {
     throw new Error("Method not implemented!");
   }
 
-  static getProviderInfo() {
+  getDisplayName() {
     throw new Error("Method not implemented!");
   }
 }

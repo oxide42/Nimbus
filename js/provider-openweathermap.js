@@ -92,4 +92,8 @@ class OpenWeatherMapProvider extends Provider {
       alerts: alerts,
     };
   }
+
+  getDisplayName() {
+    return "OpenWeatherMap";
+  }
 }

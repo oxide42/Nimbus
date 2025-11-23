@@ -301,7 +301,7 @@ body.dark-mode .zoom-menu-item:hover {
 #chartContainer {
     border-bottom: none;
     border-radius: 4px 4px 0 0;
-    margin-bottom: -10px;
+    margin-bottom: 0px;
     height: 500px;
     max-height: calc(100vh - 350px);
     position: relative;
@@ -312,7 +312,7 @@ body.dark-mode .zoom-menu-item:hover {
     height: 100px;
     border-top: none;
     border-radius: 0 0 4px 4px;
-    margin-top: 0;
+    margin-top: -30px;
     position: relative;
     z-index: 2;
 }
@@ -563,11 +563,51 @@ body.dark-mode .settings-column h3 {
     color: #555;
 }
 
-.github-icon img {
-    margin-left: 10px;
+.page-footer {
+    text-align: left;
+    padding: 0px 20px;
     margin-top: 0px;
-    width: 24px;
-    height: 24px;
-    fill: currentColor;
-    vertical-align: middle;
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.footer-github {
+    display: inline-flex;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.footer-github:hover {
+    opacity: 1;
+}
+
+.footer-github img {
+    width: 20px;
+    height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+    display: block;
+}
+
+body.dark-mode .footer-github img {
+    filter: invert(1);
+}
+
+.footer-provider {
+    font-size: 11px;
+    color: #666;
+    font-family: monospace;
+}
+
+body.dark-mode .footer-provider {
+    color: #999;
 }

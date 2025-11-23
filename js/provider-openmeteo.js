@@ -86,14 +86,21 @@ class OpenMeteoProvider extends Provider {
     };
   }
 
-  // Open-Meteo provider information
-  static getProviderInfo() {
-    return {
-      name: "Open-Meteo",
-      description: "Open source weather data",
-      website: "https://open-meteo.com",
-      requiresApiKey: false,
-      dataSource: "Open-Meteo Open Data API",
-    };
+  getDisplayName() {
+    const model = this.settings.getOpenMeteoModel();
+
+    if (model === "auto") {
+      return "Open-Meteo";
+    }
+
+    // Find the model label from OpenMeteoModels
+    if (typeof OpenMeteoModels !== "undefined") {
+      const modelInfo = OpenMeteoModels.models.find((m) => m.value === model);
+      if (modelInfo) {
+        return modelInfo.label + "/Open-Meteo";
+      }
+    }
+
+    return "Open-Meteo";
   }
 }

@@ -61,13 +61,7 @@ class DmiProvider extends Provider {
   }
 
   // DMI provider information
-  static getProviderInfo() {
-    return {
-      name: "DMI (Danmarks Meteorologiske Institut)",
-      description: "Official Danish weather service",
-      website: "https://www.dmi.dk/",
-      requiresApiKey: true, // API token can be used for enhanced access
-      dataSource: "DMI Open Data API",
-    };
+  getDisplayName() {
+    return "DMI Denmark";
   }
 }

@@ -21,8 +21,17 @@ class WeatherApp {
     // Initialize UI and load data
     this.initializeUI();
     this.updateAllText();
+    this.updateProviderDisplay();
     this.loadWeatherData();
     this.loadLocationName();
+  }
+
+  updateProviderDisplay() {
+    const providerInfoElement = document.getElementById("providerInfo");
+    if (providerInfoElement) {
+      providerInfoElement.textContent =
+        this.weatherService.getProviderDisplayName();
+    }
   }
 
   initializeUI() {
@@ -37,6 +46,8 @@ class WeatherApp {
       // Toggle between main and settings
       if (settingsPage.classList.contains("active")) {
         this.settings.saveSettings();
+        this.weatherService.setProvider(this.settings.settings.weatherProvider);
+        this.updateProviderDisplay();
         this.clearWeatherCache();
         this.showPage("main");
         this.loadWeatherData();
