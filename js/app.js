@@ -190,7 +190,6 @@ class WeatherApp {
     }
 
     const temp = Math.round(current.temperature);
-    const feelsLike = Math.round(current.temperature); // You can add feels-like calculation if available
     const precipitation = current.precipitation
       ? current.precipitation.toFixed(1)
       : "0.0";
@@ -203,13 +202,44 @@ class WeatherApp {
       : windSpeed;
     const sunHours = current.sunHours ? current.sunHours.toFixed(0) : "0";
 
+    // Patio weather: no wind and 100% overcast vs current conditions
+    const patioWeatherNoWind = current.patioWeather?.noWind || temp;
+    const patioWeatherWithWind = current.patioWeather?.withWind || temp;
+
+    // Hiking weather: with wind and 100% overcast vs current conditions
+    const hikingWeatherNoWind = current.hikingWeather?.noWind || temp;
+    const hikingWeatherWithWind = current.hikingWeather?.withWind || temp;
+
+    // Format timestamp using current locale
+    const i18n = I18n.getInstance();
+    const locale = i18n.getCurrentLanguage() === "da" ? "da-DK" : "en-US";
+    const timeStr = current.time.toLocaleTimeString(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     container.innerHTML = `
       <div class="current-weather-grid">
         <div class="current-weather-main">
           <div class="current-temp">${temp}${this.settings.getTemperatureUnit()}</div>
           <div class="current-details">
-            <div class="current-condition">Now</div>
-            <div class="current-feels-like">${t("currentWeather.feelsLike")} ${feelsLike}${this.settings.getTemperatureUnit()}</div>
+            <table class="weather-table">
+              <tr>
+                <th></th>
+                <th>No wind</th>
+                <th>Forecast</th>
+              </tr>
+              <tr>
+                <td>${t("currentWeather.patioWeather")}</td>
+                <td>${patioWeatherNoWind}${this.settings.getTemperatureUnit()}</td>
+                <td>${patioWeatherWithWind}${this.settings.getTemperatureUnit()}</td>
+              </tr>
+              <tr>
+                <td>${t("currentWeather.hikingWeather")}</td>
+                <td>${hikingWeatherNoWind}${this.settings.getTemperatureUnit()}</td>
+                <td>${hikingWeatherWithWind}${this.settings.getTemperatureUnit()}</td>
+              </tr>
+            </table>
           </div>
         </div>
         <div class="current-weather-stats">

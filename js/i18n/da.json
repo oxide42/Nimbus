@@ -67,7 +67,9 @@
     "precipitationProb": "Nedbørssandsynlighed",
     "wind": "Vind",
     "gusts": "Vindstød",
-    "sun": "Sol"
+    "sun": "Sol",
+    "patioWeather": "Terrassevejret",
+    "hikingWeather": "Turvejret"
   },
   "alerts": {
     "title": "Vejrvarsler"

@@ -67,7 +67,9 @@
     "precipitationProb": "Precipitation probability",
     "wind": "Wind",
     "gusts": "Gusts",
-    "sun": "Sun"
+    "sun": "Sun",
+    "patioWeather": "Patio weather",
+    "hikingWeather": "Hiking weather"
   },
   "alerts": {
     "title": "Weather Alerts"

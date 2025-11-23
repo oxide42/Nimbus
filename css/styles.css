@@ -259,6 +259,7 @@ body.dark-mode .zoom-menu-item:hover {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
+    align-content: right;
 }
 
 .weather-stat {
