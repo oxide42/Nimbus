@@ -128,11 +128,11 @@ class WeatherService {
         },
         patioWeather: {
           noWind: apparentTemp.temp.min.vindstille,
-          withWind: apparentTemp.temp.min.vind,
+          withWind: apparentTemp.temp.max.vindstille,
         },
         hikingWeather: {
-          noWind: apparentTemp.temp.min.vindstille,
-          withWind: apparentTemp.temp.min.vind,
+          noWind: apparentTemp.temp.min.vind,
+          withWind: apparentTemp.temp.max.vind,
         },
       };
     });

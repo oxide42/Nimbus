@@ -522,8 +522,8 @@ function update() {
     return processedData.map((item) => ({
       time: item.time.getTime(),
       temperature: item.temperature,
-      apparentTemperatureMin: item.apparentTemperature?.min,
-      apparentTemperatureMax: item.apparentTemperature?.max,
+      apparentTemperatureMin: item.hikingWeather?.min,
+      apparentTemperatureMax: item.hikingWeather?.max,
       precipitation: item.precipitation,
       precipitationProb: item.precipitationProb,
       sunHours: item.sunHours,
