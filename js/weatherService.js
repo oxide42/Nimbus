@@ -44,30 +44,27 @@ class WeatherService {
     return `Weather data from ${providerName}`;
   }
 
-  #smoothData(data) {
-    const xs = data.map((_, index) => index);
-    const yTemp = data.map((item) => item.temperature);
-    const yWind = data.map((item) => item.windSpeed);
+  #smoothData(data, properties) {
+    const propsArray = Array.isArray(properties) ? properties : [properties];
+    const groomedData = [];
 
-    const smoothedTemperature = SavitzkyGolay.sgg(yTemp, xs, {
-      windowSize: 9,
-      derivative: 0,
-      polynomial: 1,
+    propsArray.forEach((property) => {
+      const y = data.map((item) => item[property]);
+      const smoothed = SavitzkyGolay.sgg(y, 1, {
+        windowSize: 9,
+        derivative: 0,
+        polynomial: 1,
+      });
+      groomedData.push(smoothed);
     });
 
-    const smoothedWind = SavitzkyGolay.sgg(yWind, xs, {
-      windowSize: 5,
-      derivative: 0,
-      polynomial: 1,
+    data.forEach((item, index) => {
+      propsArray.forEach((property, propIndex) => {
+        item[property] = groomedData[propIndex][index];
+      });
     });
 
-    const smoothedData = data.map((item, index) => ({
-      ...item,
-      temperature: smoothedTemperature[index],
-      windSpeed: smoothedWind[index],
-    }));
-
-    return smoothedData;
+    return data;
   }
 
   /**
@@ -215,7 +212,16 @@ class WeatherService {
 
       let processedData = provider.processWeatherData(result);
 
-      processedData.data = this.#smoothData(processedData.data);
+      // Mark extrema points for temperature, wind, and apparent temperature
+      const extremaFields = [
+        "temperature",
+        "windSpeed",
+        "windGusts",
+        "apparentTemperature.min",
+        "apparentTemperature.max",
+      ];
+
+      processedData.data = this.#smoothData(processedData.data, extremaFields);
 
       // Postprocess sun hours to correct for nighttime
       let correctedData = this.#correctSunHours(
@@ -230,15 +236,6 @@ class WeatherService {
         latitude,
         longitude,
       );
-
-      // Mark extrema points for temperature, wind, and apparent temperature
-      const extremaFields = [
-        "temperature",
-        "windSpeed",
-        "windGusts",
-        "apparentTemperature.min",
-        "apparentTemperature.max",
-      ];
 
       correctedData = this.extremaService.markExtrema(
         correctedData,
