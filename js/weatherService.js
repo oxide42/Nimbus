@@ -60,7 +60,7 @@ class WeatherService {
 
     data.forEach((item, index) => {
       propsArray.forEach((property, propIndex) => {
-        item[property] = Math.round(groomedData[propIndex][index]);
+        item[property] = Math.round(groomedData[propIndex][index] * 100) / 100;
       });
     });
 

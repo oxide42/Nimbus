@@ -294,7 +294,7 @@ class ExtremaService {
    * @param {number}        [windowSize=5]  Odd integer ≥ 3
    * @returns {Array<Object>} The same array, mutated in place
    */
-  #findLocalExtrema2(data, property, windowSize = 11) {
+  #findLocalExtrema2(data, property, windowSize = 17) {
     if (!Array.isArray(data) || data.length === 0) return data;
     if (typeof property !== "string" || property.length === 0) return data;
     if (windowSize < 3 || windowSize % 2 === 0) {
@@ -305,7 +305,7 @@ class ExtremaService {
 
     for (let i = 0; i < data.length; i++) {
       const current = data[i];
-      const value = Math.round(current[property]);
+      const value = current[property];
 
       if (value == null || Number.isNaN(value)) continue;
 
@@ -316,12 +316,12 @@ class ExtremaService {
       for (let j = -half; j <= half; j++) {
         const k = i + j;
         if (k < 0 || k >= data.length) continue;
-        const other = Math.round(data[k][property]);
+        const other = data[k][property];
         if (other == null || Number.isNaN(other)) continue;
 
         if (k !== i) {
-          if (other < value) isMin = false;
-          if (other > value) isMax = false;
+          if (other <= value) isMin = false;
+          if (other >= value) isMax = false;
         }
       }
 
@@ -345,6 +345,7 @@ class ExtremaService {
     }
 
     // debug to console.log a list like value1,isMaxima,isminima;value2,ismaxima,isminima;...
+    /*
     console.log(
       data
         .map(
@@ -353,6 +354,7 @@ class ExtremaService {
         )
         .join(";"),
     );
+    */
 
     return data;
   }
