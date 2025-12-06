@@ -332,13 +332,13 @@ function update() {
 
   createTemperatureSeries(root, chart, xAxis, yAxis) {
     const tempSeries = chart.series.push(
-      am5xy.SmoothedXLineSeries.new(root, {
+      am5xy.LineSeries.new(root, {
         name: `Temperature (${this.settings.getTemperatureUnit()})`,
         xAxis: xAxis,
         yAxis: yAxis,
         valueYField: "temperature",
         valueXField: "time",
-        tension: 0.8,
+        //tension: 0.8,
         // Position bullets at the start of the interval
         locationX: 0,
       }),
@@ -429,14 +429,14 @@ function update() {
 
   createWindSeries(root, chart, xAxis, windAxis) {
     const windSeries = chart.series.push(
-      am5xy.SmoothedXLineSeries.new(root, {
+      am5xy.LineSeries.new(root, {
         name: "Wind Speed",
         xAxis: xAxis,
         yAxis: windAxis,
         valueXField: "time",
         valueYField: "windSpeed",
         openValueYField: "windBase",
-        tension: 0.3,
+        //tension: 0.3,
         // Make segments span the full interval
         locationX: 0,
       }),

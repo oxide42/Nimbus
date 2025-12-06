@@ -44,6 +44,32 @@ class WeatherService {
     return `Weather data from ${providerName}`;
   }
 
+  #smoothData(data) {
+    const xs = data.map((_, index) => index);
+    const yTemp = data.map((item) => item.temperature);
+    const yWind = data.map((item) => item.windSpeed);
+
+    const smoothedTemperature = SavitzkyGolay.sgg(yTemp, xs, {
+      windowSize: 9,
+      derivative: 0,
+      polynomial: 1,
+    });
+
+    const smoothedWind = SavitzkyGolay.sgg(yWind, xs, {
+      windowSize: 5,
+      derivative: 0,
+      polynomial: 1,
+    });
+
+    const smoothedData = data.map((item, index) => ({
+      ...item,
+      temperature: smoothedTemperature[index],
+      windSpeed: smoothedWind[index],
+    }));
+
+    return smoothedData;
+  }
+
   /**
    * Group consecutive precipitation periods and mark the middle point with total precipitation
    * A group continues if only one period of dry weather separates it from the next precipitation
@@ -144,6 +170,8 @@ class WeatherService {
    * @returns {Object|null} - Cached data with reconstructed Date objects, or null if not available/expired
    */
   #getCachedData(cacheKey) {
+    return null;
+
     const cached = this.cache.getItem(cacheKey, this.cacheVersion);
     if (!cached) {
       return null;
@@ -189,9 +217,11 @@ class WeatherService {
 
       let processedData = provider.processWeatherData(result);
 
+      processedData.data = this.#smoothData(processedData.data);
+
       // Postprocess sun hours to correct for nighttime
       let correctedData = this.#correctSunHours(
-        processedData,
+        processedData.data,
         latitude,
         longitude,
       );
@@ -249,7 +279,7 @@ class WeatherService {
    * @returns {Array} - Weather data with corrected sun hours
    */
   #correctSunHours(weatherData, latitude, longitude) {
-    return weatherData.data.map((dataPoint, index) => {
+    return weatherData.map((dataPoint, index) => {
       const currentTime = dataPoint.time;
 
       // Calculate sun times for this data point's date

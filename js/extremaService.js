@@ -37,7 +37,7 @@ class ExtremaService {
     windowSize = 5,
     baseProminence = 3,
     decayDistance = 6,
-    minSeparation = 4,
+    minSeparation = 3,
     minDifference = 1,
   ) {
     if (timeseries.length < 3) return;
