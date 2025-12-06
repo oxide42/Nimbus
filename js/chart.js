@@ -277,7 +277,7 @@ function update() {
         extraMax: 0.05,
         extraMin: 0.25,
         visible: false,
-        autoZoom: true,
+        //autoZoom: true,
         strictMinMax: true,
         renderer: am5xy.AxisRendererY.new(root, {
           strokeDasharray: [1, 3],
@@ -292,7 +292,7 @@ function update() {
         min: 0,
         max: 1,
         strictMinMax: true,
-        autoZoom: true,
+        //autoZoom: true,
         visible: false,
         renderer: am5xy.AxisRendererY.new(root, {
           opposite: true,
@@ -314,7 +314,7 @@ function update() {
         extraMax: 0.4,
         visible: false,
         strictMinMax: true,
-        autoZoom: true,
+        //autoZoom: true,
         renderer: am5xy.AxisRendererY.new(root, {
           visible: false,
         }),
@@ -354,11 +354,10 @@ function update() {
 
   createApparentTemperatureSeries(root, chart, xAxis, yAxis) {
     const apparentTempSeries = chart.series.push(
-      am5xy.SmoothedXLineSeries.new(root, {
+      am5xy.LineSeries.new(root, {
         name: `Apparent Temperature (${this.settings.getTemperatureUnit()})`,
         xAxis: xAxis,
         yAxis: yAxis,
-        tension: 0.8,
         valueYField: "apparentTemperatureMax",
         openValueYField: "apparentTemperatureMin",
         valueXField: "time",
@@ -522,8 +521,8 @@ function update() {
     return processedData.map((item) => ({
       time: item.time.getTime(),
       temperature: item.temperature,
-      apparentTemperatureMin: item.hikingWeather?.min,
-      apparentTemperatureMax: item.hikingWeather?.max,
+      apparentTemperatureMin: item.apparentTemperature?.min,
+      apparentTemperatureMax: item.apparentTemperature?.max,
       precipitation: item.precipitation,
       precipitationProb: item.precipitationProb,
       sunHours: item.sunHours,
@@ -671,7 +670,7 @@ function update() {
           } else if (seriesType === "apparentTemperature") {
             // Only show apparent temperature max labels
             if (
-              dataPoint.extrema.isMinima?.includes("apparentTemperature.max") ||
+              dataPoint.extrema.isMinima?.includes("apparentTemperature.min") ||
               dataPoint.extrema.isMaxima?.includes("apparentTemperature.max")
             ) {
               // Convert from Celsius to user's preferred unit
@@ -683,14 +682,7 @@ function update() {
               );
               const roundedValue = Math.round(convertedTemp);
               const formattedValue = roundedValue + "°";
-              addBullet(
-                series,
-                index,
-                formattedValue,
-                "apparentTemperature",
-                am5.p50,
-                am5.p0,
-              );
+              addBullet(series, index, formattedValue, "apparentTemperature");
             }
           } else if (seriesType === "wind") {
             // Add wind bullets

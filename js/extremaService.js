@@ -25,13 +25,13 @@ class ExtremaService {
 
     // Process each property and mark extrema directly on timeseries
     propsArray.forEach((property) => {
-      this.#findLocalExtrema(timeSeries, property);
+      this.#findLocalExtrema2(timeSeries, property);
     });
 
     return timeSeries;
   }
 
-  #findLocalExtrema(
+  #findLocalExtrema1(
     timeseries,
     property,
     windowSize = 5,
@@ -276,8 +276,84 @@ class ExtremaService {
         })
         .join(" | ");
 
-      console.log("Temperature extrema debug:", output);
+      console.log("Temperature extre[@extremaService.js](file:///home/c/dev/Nimbus/js/extremaService.js) The #findLocalExtrema1 method is to big and bloated. Make a #findLocalExtrema2 alternative that uses a rolling window approach, and detects extrema in this window.A detected extrema should be deletable, if rolling gives a more extreme point.ma debug:", output);
     }
     */
+  }
+
+  /**
+   * Detects extrema (minima/maxima) in a time-series using a rolling window.
+   * Adds an `extrema` object only to qualifying points:
+   *   data[idx].extrema = {
+   *     isMinima:  [propertyName],
+   *     isMaxima:  [propertyName]
+   *   }
+   *
+   * @param {Array<Object>} data        Time-series array
+   * @param {string}        property    Numeric property to scan
+   * @param {number}        [windowSize=5]  Odd integer ≥ 3
+   * @returns {Array<Object>} The same array, mutated in place
+   */
+  #findLocalExtrema2(data, property, windowSize = 11) {
+    if (!Array.isArray(data) || data.length === 0) return data;
+    if (typeof property !== "string" || property.length === 0) return data;
+    if (windowSize < 3 || windowSize % 2 === 0) {
+      throw new Error("windowSize must be an odd integer ≥ 3");
+    }
+
+    const half = Math.floor(windowSize / 2);
+
+    for (let i = 0; i < data.length; i++) {
+      const current = data[i];
+      const value = Math.round(current[property]);
+
+      if (value == null || Number.isNaN(value)) continue;
+
+      let isMin = true;
+      let isMax = true;
+
+      // scan window
+      for (let j = -half; j <= half; j++) {
+        const k = i + j;
+        if (k < 0 || k >= data.length) continue;
+        const other = Math.round(data[k][property]);
+        if (other == null || Number.isNaN(other)) continue;
+
+        if (k !== i) {
+          if (other < value) isMin = false;
+          if (other > value) isMax = false;
+        }
+      }
+
+      // first & last point are always considered
+      const isEndpoint = i === 0 || i === data.length - 1;
+
+      if (isMin || isMax || isEndpoint) {
+        if (!current.extrema) current.extrema = { isMinima: [], isMaxima: [] };
+
+        if (isMin || isEndpoint) {
+          if (!current.extrema.isMinima.includes(property)) {
+            current.extrema.isMinima.push(property);
+          }
+        }
+        if (isMax || isEndpoint) {
+          if (!current.extrema.isMaxima.includes(property)) {
+            current.extrema.isMaxima.push(property);
+          }
+        }
+      }
+    }
+
+    // debug to console.log a list like value1,isMaxima,isminima;value2,ismaxima,isminima;...
+    console.log(
+      data
+        .map(
+          (d) =>
+            `${d[property]},${d.extrema?.isMaxima.includes(property)},${d.extrema?.isMinima.includes(property)}`,
+        )
+        .join(";"),
+    );
+
+    return data;
   }
 }
