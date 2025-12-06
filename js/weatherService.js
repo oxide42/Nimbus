@@ -170,8 +170,6 @@ class WeatherService {
    * @returns {Object|null} - Cached data with reconstructed Date objects, or null if not available/expired
    */
   #getCachedData(cacheKey) {
-    return null;
-
     const cached = this.cache.getItem(cacheKey, this.cacheVersion);
     if (!cached) {
       return null;
