@@ -138,6 +138,7 @@ body.dark-mode .loading {
 
 .zoom-container {
     position: relative;
+    margin: 0px;
 }
 
 .zoom-menu {
