@@ -715,7 +715,7 @@ function update() {
               const roundedValue = Math.round(convertedSpeed);
               const formattedValue =
                 roundedValue + " " + this.settings.getWindSpeedUnit();
-              addBullet(series, index, formattedValue, "wind");
+              addBullet(series, index, formattedValue, "wind", am5.p50, am5.p0);
             }
           }
         }
