@@ -668,15 +668,24 @@ function update() {
               addBullet(series, index, formattedValue, "temperature");
             }
           } else if (seriesType === "apparentTemperature") {
-            // Only show apparent temperature max labels
-            if (
-              dataPoint.extrema.isMinima?.includes("apparentTemperature.min") ||
-              dataPoint.extrema.isMaxima?.includes("apparentTemperature.max")
-            ) {
+            // Show apparent temperature min and max labels
+            const isMin = dataPoint.extrema.isMinima?.includes(
+              "apparentTemperature.min",
+            );
+            const isMax = dataPoint.extrema.isMaxima?.includes(
+              "apparentTemperature.max",
+            );
+
+            if (isMin || isMax) {
+              // Use the appropriate value based on whether it's min or max
+              const tempValue = isMax
+                ? dataPoint.apparentTemperature.max
+                : dataPoint.apparentTemperature.min;
+
               // Convert from Celsius to user's preferred unit
               const userUnit = this.settings.settings.tempUnit;
               const convertedTemp = ConvertService.toTemperature(
-                dataPoint.apparentTemperature.max,
+                tempValue,
                 "celsius",
                 userUnit,
               );

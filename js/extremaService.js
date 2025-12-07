@@ -56,7 +56,7 @@ class ExtremaService {
 
     for (let i = 0; i < data.length; i++) {
       const current = data[i];
-      const value = current[property];
+      const value = this.#getNestedProperty(current, property);
 
       if (value == null || Number.isNaN(value)) continue;
 
@@ -67,7 +67,7 @@ class ExtremaService {
       for (let j = -half; j <= half; j++) {
         const k = i + j;
         if (k < 0 || k >= data.length) continue;
-        const other = data[k][property];
+        const other = this.#getNestedProperty(data[k], property);
         if (other == null || Number.isNaN(other)) continue;
 
         if (k !== i) {
