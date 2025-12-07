@@ -60,6 +60,8 @@ class ExtremaService {
 
       if (value == null || Number.isNaN(value)) continue;
 
+      const roundedValue = Math.round(value);
+
       let isMin = true;
       let isMax = true;
 
@@ -70,29 +72,38 @@ class ExtremaService {
         const other = this.#getNestedProperty(data[k], property);
         if (other == null || Number.isNaN(other)) continue;
 
+        const roundedOther = Math.round(other);
+
         if (k !== i) {
-          // For tie-breaking: if equal value found to the left, disqualify current point
-          if (other === value && k < i) {
+          // Compare rounded values first
+          if (roundedOther < roundedValue) {
             isMin = false;
+          } else if (roundedOther > roundedValue) {
             isMax = false;
+          } else {
+            // roundedOther === roundedValue: use actual values for tie-breaking
+            if (other < value) {
+              isMin = false;
+            } else if (other > value) {
+              isMax = false;
+            } else if (k < i) {
+              // If actual values are equal, prefer leftmost point
+              isMin = false;
+              isMax = false;
+            }
           }
-          if (other < value) isMin = false;
-          if (other > value) isMax = false;
         }
       }
 
-      // first & last point are always considered
-      const isEndpoint = i === 0 || i === data.length - 1;
-
-      if (isMin || isMax || isEndpoint) {
+      if (isMin || isMax) {
         if (!current.extrema) current.extrema = { isMinima: [], isMaxima: [] };
 
-        if (isMin || isEndpoint) {
+        if (isMin) {
           if (!current.extrema.isMinima.includes(property)) {
             current.extrema.isMinima.push(property);
           }
         }
-        if (isMax || isEndpoint) {
+        if (isMax) {
           if (!current.extrema.isMaxima.includes(property)) {
             current.extrema.isMaxima.push(property);
           }
