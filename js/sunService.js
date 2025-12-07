@@ -43,10 +43,10 @@ class SunService {
    * @returns {number} - Day of year (1-366)
    */
   getDayOfYear(date) {
-    const start = new Date(date.getFullYear(), 0, 0); // Jan 1st, 00:00:00
+    const start = new Date(date.getFullYear(), 0, 1); // Jan 1st, 00:00:00
     const diff = date - start; // ms since start of year
     const oneDay = 1000 * 60 * 60 * 24; // ms in one day
-    return Math.floor(diff / oneDay); // day-of-year (1–366)
+    return Math.floor(diff / oneDay) + 1; // day-of-year (1–366)
   }
 
   /**
@@ -66,12 +66,17 @@ class SunService {
   isDaylightSavingTime(date) {
     const january = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
     const july = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
-    return Math.max(january, july) !== date.getTimezoneOffset();
+    return Math.max(january, july) === date.getTimezoneOffset();
   }
 
   /**
    * Calculate sun position and times for given coordinates and time
-   * @param {number} lat - Latitude in degrees
+   * @param {number} lat - Latitude in degreIs this correct:
+     isDaylightSavingTime(date) {
+       const january = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
+       const july = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
+       return Math.max(january, july) !== date.getTimezoneOffset();
+     }es
    * @param {number} lon - Longitude in degrees
    * @param {Date} utcTime - UTC time as JavaScript Date object
    * @returns {Object} - Object containing zenith, sunrise, sunset, and noon times
@@ -204,9 +209,9 @@ class SunService {
     const solarconstant = 400; // W/m2
 
     // Tag hoejde for den ekstra atmosfaere som solen skal passere;
-    const solarzentithconstant =
-      solarconstant *
-      (solarconstant / (solarconstant / Math.cos((Math.PI * zenith) / 180)));
+    // Air mass factor increases as 1/cos(zenith), reducing insolation
+    const airmass = 1 / Math.cos((Math.PI * zenith) / 180);
+    const solarzentithconstant = solarconstant / airmass;
 
     // Tag hoejde for den ekstra flade solen skal opvarme;
     // az = 1 / Math.cos(Math.PI * zenith / 180.);
